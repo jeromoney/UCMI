@@ -2,3 +2,7 @@
 * Create leaflet map that creates a circle where clicked. [x]
 * install imagemagick [x]
 * pass command line from html
+
+
+9/21/2016
+
