@@ -168,8 +168,7 @@ def wld2Json(outputDir , filename):
     g.write(json.dumps(data, sort_keys=True, indent=4, separators=(',', ': ')))
     g.close()
     
-    
-    
+        
         
 def main(args):
     grass()
