@@ -6,3 +6,11 @@
 
 9/21/2016
 
+Query to find nearby points
+SELECT * FROM srtm
+WHERE 
+ST_DWithin(geom,
+ ST_SetSRID(ST_MakePoint(-105.3,40.3) , 4326),
+  .7);
+
+
