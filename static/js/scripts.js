@@ -9,8 +9,25 @@
 // Globals
 var map;
 var viewMarkers = [];
+var viewNum = -1;
 // Set your custom overlay object's prototype to a new instance of google.maps.OverlayView(). In effect, this will subclass the overlay class.
 var overlay;
+radarOverlay.prototype = new google.maps.OverlayView();
+
+function initialize() {
+   initMap();
+   initAutoComplete();
+}
+
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 38.532138, lng: -105.992014},
+            zoom: 13,
+            mapTypeId: 'roadmap'
+        });
+        
+}
 
 // This example adds a search box to a map, using the Google Place Autocomplete
       // feature. People can enter geographical searches. The search box will return a
@@ -18,19 +35,9 @@ var overlay;
 
       // This example requires the Places library. Include the libraries=places
       // parameter when you first load the API. For example:
-      // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
- 
-      function initAutocomplete() {
+      // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"> 
+function initAutoComplete() {
 
-  
-          
-          
-          
-        map = new google.maps.Map(document.getElementById('map'), {
-            center: {lat: 38.532138, lng: -105.992014},
-            zoom: 13,
-            mapTypeId: 'roadmap'
-        });
         
 
         // Create the search box and link it to the UI element.
@@ -97,32 +104,31 @@ var overlay;
             returnLocation(event);
             });
         
+}
         
 
        
  
         
         
-      }
+      
 // When user clicks on map, marker is created and then triggers viewshed calculation
 function returnLocation(event) {
     var latLng = event.latLng;
-    createMarker(latLng);
-};
-
-
-function createMarker(latLng) {
     var marker = new google.maps.Marker({
         position: latLng,
         map: map,
     });
     viewMarkers.push(marker)
+    viewNum ++;
     var parameters = {
         lat: latLng.lat(),
         lng: latLng.lng(),
-        size: viewMarkers.length
+        size: viewMarkers.length,
+        viewNum: viewNum
+
     };
-    showImage();
+    //showImage();
     
     // Sends lat lon to python script
     $.ajax({
@@ -130,11 +136,10 @@ function createMarker(latLng) {
         method: "POST",
         data: parameters,
         }).done(function() {
-            showImage();;
+            showImage();
         });
-
-    
 };
+
 
 
 // Create a constructor for your custom overlay, and set any initialization parameters.
@@ -183,35 +188,36 @@ function post(path, params, method) {
 }
 
 function showImage(){
-      
-  // Radar image.
-    var srcImage = '../viewsheds/commonviewshed.png';
-
-    // The custom radarOverlay object contains the radar image,
-    // the bounds of the image, and a reference to the map.
-    // Get the bounds from JSON file
-    var data = $.ajax({
-        url: '../viewsheds/commonviewshed.json',
-        async: false,
-        dataType: 'json'}).responseJSON;
-    
-    
-    east = parseFloat(data['east']);
-    west = parseFloat(data['west']);
-    south = parseFloat(data['south']);
-    north = parseFloat(data['north']);
-    
-    var bounds = new google.maps.LatLngBounds( {lat: south, lng: west} , 
-       {lat: north, lng: east}
-    );
-    
     if (typeof overlay != 'undefined'){
-        // Need to fix. Trying to reload image
-        //radarOverlay.div_.parentNode.removeChild(this.div_);
-        //radarOverlay.div_ = null;
+        var srcImage = '../viewsheds/commonviewshed' + viewNum + '.png';
+        overlay.refreshImage();
+    }
+    else{
+        var srcImage = '../viewsheds/commonviewshed' + viewNum + '.png';
+
+        // The custom radarOverlay object contains the radar image,
+        // the bounds of the image, and a reference to the map.
+        // Get the bounds from JSON file
+        var data = $.ajax({
+            url: '../viewsheds/commonviewshed.json',
+            async: false,
+            dataType: 'json'}).responseJSON;
+
+
+        east = parseFloat(data['east']);
+        west = parseFloat(data['west']);
+        south = parseFloat(data['south']);
+        north = parseFloat(data['north']);
+
+        var bounds = new google.maps.LatLngBounds( {lat: south, lng: west} , 
+           {lat: north, lng: east}
+        );
+
+
+            radarOverlay.prototype = new google.maps.OverlayView();
+            overlay = new radarOverlay(bounds, srcImage, map); 
     };
-    radarOverlay.prototype = new google.maps.OverlayView();
-    overlay = new radarOverlay(bounds, srcImage, map);
+
 
     
     // Implement an onAdd() method within your prototype, and attach the overlay to the map. OverlayView.onAdd() will be called when the map is ready for the overlay to be attached.
@@ -273,6 +279,26 @@ function showImage(){
       this.div_.parentNode.removeChild(this.div_);
       this.div_ = null;
     };
+    
+    
+    radarOverlay.prototype.refreshImage = function(imageSRC = '../viewsheds/commonviewshed.png'){
+    this.image_ = imageSRC;
+    this.setMap(null);
+    this.setMap(this.map_);
 
-
+    }
 }
+
+function dickbutt(butt){
+    if (butt){
+        var srcImage = '../viewsheds/dickbutt.png';
+        overlay.refreshImage(srcImage);
+       
+    }
+    else{
+        overlay.refreshImage();    };
+};
+
+
+
+initialize();

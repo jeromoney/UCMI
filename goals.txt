@@ -13,4 +13,10 @@ ST_DWithin(geom,
  ST_SetSRID(ST_MakePoint(-105.3,40.3) , 4326),
   .7);
 
-
+minimal update image
+USGSOverlay.prototype.dickbutt = function() {
+	this.image_ = 'http://www.imagenspng.com.br/wp-content/uploads/2015/02/super-mario-yoshi.png';
+this.setMap(null);
+    this.setMap(this.map_);
+    console.log(this);
+};

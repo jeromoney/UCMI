@@ -94,14 +94,14 @@ def lookupSRTM(lat , lon):
     os.system('rm {0}/*'.format(gdalwarpDir))
 
 
-def pointQuery(lat , lon , pointNum, firstPoint):
+def pointQuery(lat , lon , pointNum, firstPoint , viewNum):
     if firstPoint:
         lookupSRTM(lat , lon)
     # run viewshed on point
     grassViewshed(lat ,lon , pointNum)
     
     # use mapcalc to find common viewpoints
-    grassCommonViewpoints()
+    grassCommonViewpoints(viewNum)
 
 def main(args):
     lookupSRTM(39 , -110)

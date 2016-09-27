@@ -56,7 +56,7 @@ def grassViewshed(lat , lng, pointNum , outputDir = '/home/justin/Documents/ucmi
         max_distance = '50000',
         overwrite = True)
 
-def grassCommonViewpoints(filename = 'commonviewshed'):
+def grassCommonViewpoints(viewNum, filename = 'commonviewshed'):
     # redudant conections to grass
     r , g , gscript = connect2grass()
     
@@ -72,7 +72,7 @@ def grassCommonViewpoints(filename = 'commonviewshed'):
     gscript.run_command('r.out.png',
         flags = 'wt', # makes null cells transparent and w outputs world file
         input = 'combined@ucmiGeoData',
-        output = viewshedDir + filename + '.png',
+        output = viewshedDir + filename + str(viewNum) + '.png',
         overwrite = True)
         
     # convert world file to json file with east, west, north, south bounds    

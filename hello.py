@@ -13,9 +13,10 @@ def pythonScript():
     lat = request.form['lat']
     lng = request.form['lng']
     pointNum = int(request.form['size'])
+    viewNum = int(request.form['viewNum'])
     firstMarker = (pointNum == 1)
-    pointQuery(lat, lng , pointNum, firstMarker)
-    return lat , lng
+    pointQuery(lat, lng , pointNum, firstMarker , viewNum)
+    return '0'
 
 @app.route('/<path:path>')
 def serve_static(path):
