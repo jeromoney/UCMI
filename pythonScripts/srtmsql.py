@@ -6,6 +6,8 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
+from viewsheds import initGrassSetup , grassViewshed , grassCommonViewpoints
+
 
 # commands
 unzipCmd = 'unzip -n -d {unzipDir} {files};'
@@ -81,14 +83,32 @@ def lookupSRTM(lat , lon):
     os.chdir(gdalwarpDir)
     os.system(gdal_merge.format(tilename = tilename))
     
-    # load file into grassgis
-    grassInputFile(tilename)
-
     
+    #deleting files in EPSG4326 folder
+    os.system('rm {0}/*'.format(unzipDir))
+    
+    # load file into grassgis
+    initGrassSetup()
+
+    #deleting all files in EPSG3857
+    os.system('rm {0}/*'.format(gdalwarpDir))
 
 
+def pointQuery(lat , lon , pointNum, firstPoint):
+    if firstPoint:
+        lookupSRTM(lat , lon)
+    # run viewshed on point
+    grassViewshed(lat ,lon , pointNum)
+    
+    # use mapcalc to find common viewpoints
+    grassCommonViewpoints()
+
+def main(args):
+    lookupSRTM(39 , -110)
+    return 0
 
 if __name__ == '__main__':
-    print lookupSRTM(41 , -105)
+    import sys
+    sys.exit(main(sys.argv))
     
 

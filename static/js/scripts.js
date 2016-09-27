@@ -117,10 +117,10 @@ function createMarker(latLng) {
         map: map,
     });
     viewMarkers.push(marker)
-
     var parameters = {
         lat: latLng.lat(),
-        lng: latLng.lng()
+        lng: latLng.lng(),
+        size: viewMarkers.length
     };
     showImage();
     
@@ -185,13 +185,13 @@ function post(path, params, method) {
 function showImage(){
       
   // Radar image.
-    var srcImage = '../viewsheds/viewshed.png';
+    var srcImage = '../viewsheds/commonviewshed.png';
 
     // The custom radarOverlay object contains the radar image,
     // the bounds of the image, and a reference to the map.
     // Get the bounds from JSON file
     var data = $.ajax({
-        url: '../viewsheds/viewshed.json',
+        url: '../viewsheds/commonviewshed.json',
         async: false,
         dataType: 'json'}).responseJSON;
     
@@ -205,10 +205,14 @@ function showImage(){
        {lat: north, lng: east}
     );
     
-
+    if (typeof overlay != 'undefined'){
+        // Need to fix. Trying to reload image
+        //radarOverlay.div_.parentNode.removeChild(this.div_);
+        //radarOverlay.div_ = null;
+    };
     radarOverlay.prototype = new google.maps.OverlayView();
     overlay = new radarOverlay(bounds, srcImage, map);
-    
+
     
     // Implement an onAdd() method within your prototype, and attach the overlay to the map. OverlayView.onAdd() will be called when the map is ready for the overlay to be attached.
     
@@ -260,5 +264,15 @@ function showImage(){
         div.style.width = (ne.x - sw.x) + 'px';
         div.style.height = (sw.y - ne.y) + 'px';
     };        
-}
 
+
+
+    // The onRemove() method will be called automatically from the API if
+    // we ever set the overlay's map property to 'null'.
+    radarOverlay.prototype.onRemove = function() {
+      this.div_.parentNode.removeChild(this.div_);
+      this.div_ = null;
+    };
+
+
+}
