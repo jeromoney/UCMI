@@ -56,7 +56,8 @@ def grassViewshed(lat , lng, pointNum , outputDir = '/home/justin/Documents/ucmi
         max_distance = '50000',
         overwrite = True)
 
-def grassCommonViewpoints(viewNum, filename = 'commonviewshed'):
+def grassCommonViewpoints(viewNum):
+    filename = 'commonviewshed' + str(viewNum)
     # redudant conections to grass
     r , g , gscript = connect2grass()
     
@@ -72,40 +73,11 @@ def grassCommonViewpoints(viewNum, filename = 'commonviewshed'):
     gscript.run_command('r.out.png',
         flags = 'wt', # makes null cells transparent and w outputs world file
         input = 'combined@ucmiGeoData',
-        output = viewshedDir + filename + str(viewNum) + '.png',
+        output = viewshedDir + filename + '.png',
         overwrite = True)
         
     # convert world file to json file with east, west, north, south bounds    
     wld2Json(viewshedDir , filename)
-
- 
-def grassViewshedXXXXXX(lat , lng,outputDir = '/home/justin/Documents/ucmi/UCMI/static/viewsheds/' , filename = 'viewshed'):
-    r , g , gscript = connect2grass()
-
-    #r.viewshed --overwrite input=n38w106@ucmiGeoData output=my_viewshed coordinates=-11761109.3167,4671226.49836 max_distance=5000
-    outProj = Proj(init='epsg:3857')
-    inProj = Proj(init='epsg:4326')
-    x , y = transform(inProj , outProj , lng , lat)
-    
-    
-    r.viewshed(
-        input = 'n38w106@ucmiGeoData' ,
-        output= 'my_viewshed' ,
-        coordinates = (x , y) ,
-        max_distance = '50000',
-        overwrite = True)
-    
-
-    #r.out.png -t -w --overwrite input=my_viewshed@ucmiGeoData output=/home/justin/Documents/ucmi/geodata/viewsheds/viewshed.png
-    #not sure why I can't call as r.out.png(...)
-    gscript.run_command('r.out.png',
-        flags = 'wt', # makes null cells transparent and w outputs world file
-        input = 'my_viewshed@ucmiGeoData',
-        output = outputDir + filename,
-        overwrite = True)
-        
-    # convert world file to json file with east, west, north, south bounds    
-    wld2Json(outputDir , filename)
 
 
 # reads a world file and converts calculates east, west, north, south bounds. Writes out in JSON format

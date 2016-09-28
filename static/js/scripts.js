@@ -128,7 +128,6 @@ function returnLocation(event) {
         viewNum: viewNum
 
     };
-    //showImage();
     
     // Sends lat lon to python script
     $.ajax({
@@ -190,7 +189,7 @@ function post(path, params, method) {
 function showImage(){
     if (typeof overlay != 'undefined'){
         var srcImage = '../viewsheds/commonviewshed' + viewNum + '.png';
-        overlay.refreshImage();
+        overlay.refreshImage(srcImage);
     }
     else{
         var srcImage = '../viewsheds/commonviewshed' + viewNum + '.png';
@@ -199,7 +198,7 @@ function showImage(){
         // the bounds of the image, and a reference to the map.
         // Get the bounds from JSON file
         var data = $.ajax({
-            url: '../viewsheds/commonviewshed.json',
+            url: '../viewsheds/commonviewshed' + viewNum + '.json',
             async: false,
             dataType: 'json'}).responseJSON;
 
@@ -281,7 +280,7 @@ function showImage(){
     };
     
     
-    radarOverlay.prototype.refreshImage = function(imageSRC = '../viewsheds/commonviewshed.png'){
+    radarOverlay.prototype.refreshImage = function(imageSRC){
     this.image_ = imageSRC;
     this.setMap(null);
     this.setMap(this.map_);
@@ -296,7 +295,7 @@ function dickbutt(butt){
        
     }
     else{
-        overlay.refreshImage();    };
+        overlay.refreshImage(srcImage);    };
 };
 
 
