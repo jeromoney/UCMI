@@ -14,6 +14,10 @@ var viewNum = -1;
 var overlay;
 radarOverlay.prototype = new google.maps.OverlayView();
 
+// initialize checkbox
+$("[name='editCheckbox']").bootstrapSwitch();
+
+
 function initialize() {
    initMap();
    initAutoComplete();
@@ -101,7 +105,12 @@ function initAutoComplete() {
         
         // Listen for map clicks
         map.addListener('click', function(event) {
-            returnLocation(event);
+            var editState = $('input[name="editCheckbox"]').bootstrapSwitch('state');
+            
+            // If edit button is checked
+            if ($('input[name="editCheckbox"]').bootstrapSwitch('state')){
+                returnLocation(event);
+            };
             });
         
 }
@@ -295,7 +304,8 @@ function dickbutt(butt){
        
     }
     else{
-        overlay.refreshImage(srcImage);    };
+        console.log(            $('input[name="editCheckbox"]').bootstrapSwitch('state'));
+    }
 };
 
 

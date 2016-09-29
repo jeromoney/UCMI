@@ -3,9 +3,7 @@
 # Looks up in database for nearby srtm files.
 
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, backref
+import psycopg2
 from viewsheds import initGrassSetup , grassViewshed , grassCommonViewpoints
 
 
@@ -41,23 +39,23 @@ query = """
 
 # Queries databse for nearby lat , lon SRTMs
 def lookupSRTM(lat , lon):
-    # connect to database
-    engine = create_engine("postgresql://justin:bobo24@localhost/gisdb", convert_unicode=True, echo=False)
-    connection = engine.connect()
-    Base = declarative_base()
-    Base.metadata.reflect(engine)
+    # connect to database"dbname=test user=postgres password=secret"
+    conn = psycopg2.connect("dbname=gisdb user=justin password=bobo24")
     
+    # Open a cursor to perform database operations
+    cur = conn.cursor()
+        
     #query
-    result = connection.execute(query.format(lon = lon , lat = lat , SRID = SRID , radius = radius))
-
+    cur.execute(query.format(lon = lon , lat = lat , SRID = SRID , radius = radius))
+    result = cur.fetchall()
     
     # if file not downloaded, then downloaded it
     commandList = ''
     filenames = []
     for row in result:
-        intLat = row['lat']
-        intLon = row['lon']
-        region = row['region']
+        intLat = row[0]
+        intLon = row[1]
+        region = row[2]
         filenames.append(filename % (intLat , -1 *  intLon))
         # if file has not been downloaded already add to commadn list
         if filenames[-1] not in os.listdir(geodataDir):

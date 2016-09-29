@@ -37,6 +37,10 @@ def initGrassSetup(filename = 'tile.tif'):
         type='raster',
         pattern='viewshed*')                                    
 
+# Filters locations either above or below. Used mostly with subjects above/below treeline
+def grassElevationFilter(viewNum , elevationfilter , elevation):
+    grassCommonViewpoints(viewNum , elevationfilter , elevation)
+
     
 def grassViewshed(lat , lng, pointNum , outputDir = '/home/justin/Documents/ucmi/UCMI/static/viewsheds/'):
     # redudant conections to grass
@@ -56,7 +60,7 @@ def grassViewshed(lat , lng, pointNum , outputDir = '/home/justin/Documents/ucmi
         max_distance = '50000',
         overwrite = True)
 
-def grassCommonViewpoints(viewNum):
+def grassCommonViewpoints(viewNum , elevationfilter = 'above' , elevation = 3857):
     filename = 'commonviewshed' + str(viewNum)
     # redudant conections to grass
     r , g , gscript = connect2grass()
@@ -66,8 +70,12 @@ def grassCommonViewpoints(viewNum):
     rasters = gscript.list_strings(type = 'rast')
     viewshedRasters = [raster for raster in rasters if 'viewshed' in raster]
     # r.mapcalc expression=combined = viewshed1@ucmiGeoData   * viewshed2@ucmiGeoData   * viewshed3@ucmiGeoData
-    grass.mapcalc('combined = ' + ' * '.join(viewshedRasters) , overwrite = True)
-    
+    if elevationfilter == 'above':
+        grass.mapcalc('combined = ' + ' * '.join(viewshedRasters) +  '* (tile@ucmiGeoData   >  {0})'.format(elevation) , overwrite = True)
+    else:
+        grass.mapcalc('combined = ' + ' * '.join(viewshedRasters) +  '* (tile@ucmiGeoData   <  {0})'.format(elevation) , overwrite = True)
+    # make 0 cells null
+    r.null(map='combined@ucmiGeoData' , setnull = 0)
     #r.out.png -t -w --overwrite input=my_viewshed@ucmiGeoData output=/home/justin/Documents/ucmi/geodata/viewsheds/viewshed.png
     #not sure why I can't call as r.out.png(...)
     gscript.run_command('r.out.png',

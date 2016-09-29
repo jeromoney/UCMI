@@ -2,11 +2,18 @@ import math
 
 from flask import Flask , request, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from pythonScripts.viewsheds import grassViewshed
+from pythonScripts.viewsheds import grassViewshed , grassElevationFilter
 from pythonScripts.srtmsql import pointQuery
 
 app = Flask(__name__, static_url_path='')
 
+@app.route('/elevationfilter', methods=['GET', 'POST'])
+def elevationfilter():
+    elevation = int(request.form['elevation'])
+    elevationfilter = request.form['aboveOrbelow']
+    viewNum = int(request.form['viewNum'])
+    grassElevationFilter(viewNum , elevationfilter , elevation)
+    return '0'
 
 @app.route('/python', methods=['GET', 'POST'])
 def pythonScript():
@@ -29,10 +36,9 @@ def index():
 
 # Checks if necessary elevation files are present and downloads if not available.
 def srtmDownload(lat, lng):
-    
     return -1 , -1
 
 
 if __name__ == "__main__":
     print app.config
-    app.run()
+    app.run(debug=True)
