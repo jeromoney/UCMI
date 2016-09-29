@@ -17,6 +17,11 @@ radarOverlay.prototype = new google.maps.OverlayView();
 // initialize checkbox
 $("[name='editCheckbox']").bootstrapSwitch();
 
+$(document).ready(function(){
+    $('#altFilter').click(function() {
+        alitutdeFilter();
+    })
+});
 
 function initialize() {
    initMap();
@@ -308,6 +313,17 @@ function dickbutt(butt){
     }
 };
 
+
+function alitutdeFilter(){
+    if ($("#altFilter").text() == '<'){
+        $("#altFilter").text('>');
+        $("#altFilter").val('greaterthan');
+    }
+    else{
+        $("#altFilter").text('<');
+        $("#altFilter").val('lessthan');
+    }
+};
 
 
 initialize();
