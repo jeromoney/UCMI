@@ -1,28 +1,30 @@
 import math
 
 from flask import Flask , request, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
-from pythonScripts.viewsheds import grassViewshed , grassElevationFilter
-from pythonScripts.srtmsql import pointQuery
+from pythonScripts.viewsheds64 import grassViewshed 
+from pythonScripts.srtmsql64 import pointQuery
 
 app = Flask(__name__, static_url_path='')
 
 @app.route('/elevationfilter', methods=['GET', 'POST'])
 def elevationfilter():
-    elevation = int(request.form['elevation'])
-    elevationfilter = request.form['aboveOrbelow']
+    altitude = int(request.form['elevation'])
+    greaterthan = (request.form['aboveOrbelow'] == 'greaterthan')
     viewNum = int(request.form['viewNum'])
-    grassElevationFilter(viewNum , elevationfilter , elevation)
+    grassCommonViewpoints(viewNum , greaterthan , altitude)
     return '0'
 
 @app.route('/python', methods=['GET', 'POST'])
 def pythonScript():
-    lat = request.form['lat']
-    lng = request.form['lng']
-    pointNum = int(request.form['size'])
-    viewNum = int(request.form['viewNum'])
+    form = request.form
+    altitude = int(form['altitude'])
+    lat = form['lat']
+    lng = form['lng']
+    pointNum = int(form['size'])
+    viewNum = int(form['viewNum'])
     firstMarker = (pointNum == 1)
-    pointQuery(lat, lng , pointNum, firstMarker , viewNum)
+    greaterthan = (form['greaterthan'] == 'greaterthan')
+    pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude)
     return '0'
 
 @app.route('/<path:path>')

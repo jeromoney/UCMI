@@ -19,7 +19,13 @@ $("[name='editCheckbox']").bootstrapSwitch();
 
 $(document).ready(function(){
     $('#altFilter').click(function() {
-        alitutdeFilter();
+        altitudeFilter();
+    })
+});
+
+$(document).ready(function(){
+    $('#altRefresh').click(function() {
+        altitudeRefresh();
     })
 });
 
@@ -135,14 +141,20 @@ function returnLocation(event) {
     });
     viewMarkers.push(marker)
     viewNum ++;
+    var altitude = $("#altitude").val();
+    if (altitude == ""){
+        altitude = "0";
+    };
+    var greaterthan = $("#altFilter").val();
     var parameters = {
         lat: latLng.lat(),
         lng: latLng.lng(),
         size: viewMarkers.length,
-        viewNum: viewNum
-
+        viewNum: viewNum,
+        altitude : altitude,
+        greaterthan : greaterthan
     };
-    
+        
     // Sends lat lon to python script
     $.ajax({
         url: "python",
@@ -173,32 +185,6 @@ function radarOverlay(bounds, image, map) {
     this.setMap(map);
 }
 
-
-
-// http://stackoverflow.com/questions/133925/javascript-post-request-like-a-form-submit
-function post(path, params, method) {
-    method = method || "post"; // Set method to post by default if not specified.
-
-    // The rest of this code assumes you are not using a library.
-    // It can be made less wordy if you use one.
-    var form = document.createElement("form");
-    form.setAttribute("method", method);
-    form.setAttribute("action", path);
-
-    for(var key in params) {
-        if(params.hasOwnProperty(key)) {
-            var hiddenField = document.createElement("input");
-            hiddenField.setAttribute("type", "hidden");
-            hiddenField.setAttribute("name", key);
-            hiddenField.setAttribute("value", params[key]);
-
-            form.appendChild(hiddenField);
-         }
-    }
-    
-    document.body.appendChild(form);
-    form.submit();
-}
 
 function showImage(){
     if (typeof overlay != 'undefined'){
@@ -314,7 +300,7 @@ function dickbutt(butt){
 };
 
 
-function alitutdeFilter(){
+function altitudeFilter(){
     if ($("#altFilter").text() == '<'){
         $("#altFilter").text('>');
         $("#altFilter").val('greaterthan');
@@ -324,6 +310,30 @@ function alitutdeFilter(){
         $("#altFilter").val('lessthan');
     }
 };
+
+
+// Need to add form verification
+
+function altitudeRefresh(){
+    var greaterthan = ( $("#altFilter").val() == 'greaterthan');
+    var altitude = $("#altitude").val();
+    if (altitude == ""){
+        altitude = "0";
+    };
+    var parameters = {
+        altitude: altitude,
+        greaterthan: greaterthan,
+        viewNum: viewNum
+    };
+    $.ajax({
+        url: "elevationfilter",
+        method: "POST",
+        data: parameters,
+        }).done(function() {
+            showImage();
+        });
+}
+
 
 
 initialize();

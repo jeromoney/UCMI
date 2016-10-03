@@ -84,7 +84,7 @@ def lookupSRTM(lat , lon):
     
     #deleting files in EPSG4326 folder
     os.system('rm {0}/*'.format(unzipDir))
-    
+    assert(false)
     # load file into grassgis
     initGrassSetup()
 
@@ -92,14 +92,14 @@ def lookupSRTM(lat , lon):
     os.system('rm {0}/*'.format(gdalwarpDir))
 
 
-def pointQuery(lat , lon , pointNum, firstPoint , viewNum):
+def pointQuery(lat , lon , pointNum, firstPoint , viewNum , greaterthan , altitude):
     if firstPoint:
         lookupSRTM(lat , lon)
     # run viewshed on point
     grassViewshed(lat ,lon , pointNum)
     
     # use mapcalc to find common viewpoints
-    grassCommonViewpoints(viewNum)
+    grassCommonViewpoints(viewNum , greaterthan , altitude)
 
 def main(args):
     lookupSRTM(39 , -110)
