@@ -315,7 +315,7 @@ function altitudeFilter(){
 // Need to add form verification
 
 function altitudeRefresh(){
-    var greaterthan = ( $("#altFilter").val() == 'greaterthan');
+    var greaterthan = $("#altFilter").val();
     var altitude = $("#altitude").val();
     if (altitude == ""){
         altitude = "0";

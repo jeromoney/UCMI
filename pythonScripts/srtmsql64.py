@@ -39,7 +39,6 @@ query = """
 
 # Queries databse for nearby lat , lon SRTMs
 def lookupSRTM(lat , lon):
-    print 'i am here'
     # connect to database"dbname=test user=postgres password=secret"
     conn = psycopg2.connect("dbname=gisdb user=justin password=bobo24")
     
@@ -93,9 +92,7 @@ def lookupSRTM(lat , lon):
 
 
 def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altitude):
-    print 'xxxi am here'
     if firstMarker:
-        print 'xyyyyi am here'
         lookupSRTM(lat , lon)
     # run viewshed on point
     grassViewshed(lat ,lon , pointNum)

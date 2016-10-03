@@ -25,13 +25,14 @@ def initGrassSetup(filename = 'tile.tif'):
         )
         
     g.parse_command('g.region' ,
-                    raster = filename[:-4] + '@ucmiGeoData')
+                    rast = filename[:-4] + '@grass64')
     
     # remove old viewsheds
+    viewsheds = [viewshed for viewshed in g.list_strings(type = 'rast') if 'viewshed' in viewshed]
+    # g.remove -f rast=fastviewshed34@grass64,fastviewshed@grass64                    
     g.parse_command('g.remove' ,
-        flags ='fb',
-        type='raster',
-        pattern='viewshed*')                                    
+        flags ='f',
+        rast=','.join(viewsheds))                                    
 
     
 def grassViewshed(lat , lng, pointNum , outputDir = '/home/justin/Documents/ucmi/UCMI/static/viewsheds/'):
@@ -47,8 +48,8 @@ def grassViewshed(lat , lng, pointNum , outputDir = '/home/justin/Documents/ucmi
     g.parse_command('r.cuda.viewshed',
                         input = srtm ,
                         output= viewName ,
-                        coordinates = (x , y) ,
-                        max_distance = '50000',
+                        coordinate = (x , y) ,
+                        max_dist = '50000',
                         overwrite = True)
     
 
@@ -59,37 +60,35 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude):
         
     rasters = g.list_strings(type = 'rast')
     viewshedRasters = [raster for raster in rasters if 'viewshed' in raster]
-    # r.mapcalc expression=combined = viewshed1@ucmiGeoData   * viewshed2@ucmiGeoData   * viewshed3@ucmiGeoData
-    if greaterthan:
-        expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@ucmiGeoData   >  {0})'.format(altitude)
+    # No viewsheds exists, so display area above/below altitude filter
+    if viewNum == -1:
+        expression = 'combined = '  +  '(tile@grass64   >  {0})'.format(altitude)
+    elif greaterthan:
+        expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@grass64   >  {0})'.format(altitude)
     else:
-        expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@ucmiGeoData   <  {0})'.format(altitude)
-    g.parse_command('r.cuda.viewshed',
-                        exp = expression,
-                        overwrite = True)        
+        expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@grass64   <  {0})'.format(altitude)
+    g.mapcalc(exp = expression, overwrite = True)        
     
     # make 0 cells null
     g.parse_command('r.null',
-                    map='combined@ucmiGeoData',
+                    map='combined@grass64',
                     setnull = 0)
     #r.out.png -t -w --overwrite input=my_viewshed@ucmiGeoData output=/home/justin/Documents/ucmi/geodata/viewsheds/viewshed.png
     #not sure why I can't call as r.out.png(...)
     g.parse_command('r.out.png',
         flags = 'wt', # makes null cells transparent and w outputs world file
-        input = 'combined@ucmiGeoData',
+        input = 'combined@grass64',
         output = viewshedDir + filename + '.png',
         overwrite = True)
         
     # convert world file to json file with east, west, north, south bounds    
     wld2Json(viewshedDir , filename)
+    
 # reads a world file and converts calculates east, west, north, south bounds. Writes out in JSON format
 def wld2Json(outputDir , filename):
 
     inProj = Proj(init='epsg:3857')
     outProj = Proj(init='epsg:4326')
-
-    
-    
     im=Image.open(outputDir + filename + '.png')
     im.size # (width,height) tuple
     im.close()
@@ -128,23 +127,6 @@ def connect2grass64():
     import grass.script.setup as gsetup
     gsetup.init(gisbase,
                 gisdbase, location, mapset)
-     
-    print g.gisenv()
-    g.message('Raster maps:')
-    for rast in g.list_strings(type = 'rast'):
-        print rast
-
-                                              
-    # r.cuda.viewshed --overwrite input=n38_w106_1arc_v3@grass64 output=fastviewshed coordinate=1,1
-    info = g.parse_command('r.cuda.viewshed',
-                                coordinate=(-105.555986,38.578380),
-                                input = 'n38_w106_1arc_v3@grass64',
-                                output = 'fastviewshed3',
-                                overwrite = True
-                                )
-    print info
-
-
     return g
 
 def main(args):

@@ -1,16 +1,17 @@
 import math
 
 from flask import Flask , request, send_from_directory
-from pythonScripts.viewsheds64 import grassViewshed 
+from pythonScripts.viewsheds64 import grassViewshed , grassCommonViewpoints
 from pythonScripts.srtmsql64 import pointQuery
 
 app = Flask(__name__, static_url_path='')
 
 @app.route('/elevationfilter', methods=['GET', 'POST'])
 def elevationfilter():
-    altitude = int(request.form['elevation'])
-    greaterthan = (request.form['aboveOrbelow'] == 'greaterthan')
-    viewNum = int(request.form['viewNum'])
+    form = request.form
+    altitude = int(form['altitude'])
+    greaterthan = (form['greaterthan'] == 'greaterthan')
+    viewNum = int(form['viewNum'])
     grassCommonViewpoints(viewNum , greaterthan , altitude)
     return '0'
 
