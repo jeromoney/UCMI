@@ -60,13 +60,16 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude):
         
     rasters = g.list_strings(type = 'rast')
     viewshedRasters = [raster for raster in rasters if 'viewshed' in raster]
+    if greaterthan:
+        sign = '>'
+    else:
+        sign = '<'
+    
     # No viewsheds exists, so display area above/below altitude filter
     if viewNum == -1:
-        expression = 'combined = '  +  '(tile@grass64   >  {0})'.format(altitude)
-    elif greaterthan:
-        expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@grass64   >  {0})'.format(altitude)
+        expression = 'combined = '  +  '(tile@grass64   {0}  {1})'.format(sign , altitude)
     else:
-        expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@grass64   <  {0})'.format(altitude)
+        expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@grass64   {0}  {1})'.format(sign , altitude)
     g.mapcalc(exp = expression, overwrite = True)        
     
     # make 0 cells null

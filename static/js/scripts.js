@@ -141,10 +141,7 @@ function returnLocation(event) {
     });
     viewMarkers.push(marker)
     viewNum ++;
-    var altitude = $("#altitude").val();
-    if (altitude == ""){
-        altitude = "0";
-    };
+    var altitude = getAltitude();
     var greaterthan = $("#altFilter").val();
     var parameters = {
         lat: latLng.lat(),
@@ -187,13 +184,11 @@ function radarOverlay(bounds, image, map) {
 
 
 function showImage(){
+    var srcImage = '../viewsheds/commonviewshed' + viewNum + '.png';
     if (typeof overlay != 'undefined'){
-        var srcImage = '../viewsheds/commonviewshed' + viewNum + '.png';
         overlay.refreshImage(srcImage);
     }
     else{
-        var srcImage = '../viewsheds/commonviewshed' + viewNum + '.png';
-
         // The custom radarOverlay object contains the radar image,
         // the bounds of the image, and a reference to the map.
         // Get the bounds from JSON file
@@ -281,7 +276,8 @@ function showImage(){
     
     
     radarOverlay.prototype.refreshImage = function(imageSRC){
-    this.image_ = imageSRC;
+    // adding last mode to prevent browser caching
+    this.image_ = imageSRC + "?lastmod=" + Date.now();
     this.setMap(null);
     this.setMap(this.map_);
 
@@ -316,10 +312,7 @@ function altitudeFilter(){
 
 function altitudeRefresh(){
     var greaterthan = $("#altFilter").val();
-    var altitude = $("#altitude").val();
-    if (altitude == ""){
-        altitude = "0";
-    };
+    var altitude = getAltitude();
     var parameters = {
         altitude: altitude,
         greaterthan: greaterthan,
@@ -332,6 +325,33 @@ function altitudeRefresh(){
         }).done(function() {
             showImage();
         });
+}
+
+
+function getAltitude(){
+    var altitude = $("#altitude").val();
+    if (altitude == ""){
+        altitude = "0";
+    }
+    // User entered a non-number   
+    if (isNaN(altitude)){
+        var altFilter = $("#altFilter").val();
+        if (altFilter == 'greaterthan'){
+            altitude = "0";
+        }
+        else {
+            altitude = "30000";
+        };
+        // Change color to red to indicate error
+        $("#altitude").addClass('alert alert-danger');
+    }
+    else {
+        // all is good so remove alert class
+        $("#altitude").removeClass('alert alert-danger');
+    }
+    
+    // conver feet to meters
+    return altitude * 0.3048;
 }
 
 

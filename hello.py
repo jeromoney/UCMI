@@ -9,7 +9,7 @@ app = Flask(__name__, static_url_path='')
 @app.route('/elevationfilter', methods=['GET', 'POST'])
 def elevationfilter():
     form = request.form
-    altitude = int(form['altitude'])
+    altitude = float(form['altitude'])
     greaterthan = (form['greaterthan'] == 'greaterthan')
     viewNum = int(form['viewNum'])
     grassCommonViewpoints(viewNum , greaterthan , altitude)
@@ -18,7 +18,7 @@ def elevationfilter():
 @app.route('/python', methods=['GET', 'POST'])
 def pythonScript():
     form = request.form
-    altitude = int(form['altitude'])
+    altitude = float(form['altitude'])
     lat = form['lat']
     lng = form['lng']
     pointNum = int(form['size'])
