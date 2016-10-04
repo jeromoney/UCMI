@@ -1,0 +1,2 @@
+# sun, moon viewsheds. Also shows angle of viewing
+# figures out treeline as baseline filter
