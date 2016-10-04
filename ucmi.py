@@ -1,10 +1,25 @@
 import math
 
-from flask import Flask , request, send_from_directory
-from pythonScripts.viewsheds64 import grassViewshed , grassCommonViewpoints
+from flask import Flask , request, send_from_directory , session
+from flask.ext.login import login_user , UserMixin , LoginManager
+from pythonScripts.viewsheds64 import grassCommonViewpoints
 from pythonScripts.srtmsql64 import pointQuery
 
+class User(UserMixin):
+    def __init__(self):
+        self.id = ''
+    @classmethod
+    def get(cls,id):
+        return cls.user_database.get(id)
+
+        
+        
 app = Flask(__name__, static_url_path='')
+app.secret_key = 'xxxxyyyyyzzzzz'
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
 
 @app.route('/elevationfilter', methods=['GET', 'POST'])
 def elevationfilter():
@@ -12,7 +27,7 @@ def elevationfilter():
     altitude = float(form['altitude'])
     greaterthan = (form['greaterthan'] == 'greaterthan')
     viewNum = int(form['viewNum'])
-    grassCommonViewpoints(viewNum , greaterthan , altitude)
+    grassCommonViewpoints(viewNum , greaterthan , altitude , userid)
     return '0'
 
 @app.route('/python', methods=['GET', 'POST'])
@@ -25,7 +40,7 @@ def pythonScript():
     viewNum = int(form['viewNum'])
     firstMarker = (pointNum == 1)
     greaterthan = (form['greaterthan'] == 'greaterthan')
-    pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude)
+    pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude , userid)
     return '0'
 
 @app.route('/<path:path>')
@@ -34,6 +49,13 @@ def serve_static(path):
     
 @app.route('/')
 def index():
+    user = User()
+    login_user(user, remember=True)
+    global userid
+    userid = request.cookies.get('remember_token')
+    if userid is None:
+        userid = max(request.cookies.get('session') , 'anonymous')
+    userid = userid[-9:]
     return send_from_directory('static', 'index.html')
     
 

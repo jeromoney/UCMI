@@ -38,7 +38,7 @@ query = """
  #   __table__ = Base.metadata.tables['srtm']
 
 # Queries databse for nearby lat , lon SRTMs
-def lookupSRTM(lat , lon):
+def lookupSRTM(lat , lon , , userid):
     # connect to database"dbname=test user=postgres password=secret"
     conn = psycopg2.connect("dbname=gisdb user=justin password=bobo24")
     
@@ -91,13 +91,17 @@ def lookupSRTM(lat , lon):
     os.system('rm {0}/*'.format(gdalwarpDir))
 
 
-def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altitude):
+def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altitude , userid):
+    lat , lon = highestNeighbor(lat , lon)
     if firstMarker:
-        lookupSRTM(lat , lon)
+        lookupSRTM(lat , lon , , userid)
     # run viewshed on point
     grassViewshed(lat ,lon , pointNum)
     # use mapcalc to find common viewpoints
     grassCommonViewpoints(viewNum , greaterthan , altitude)
+
+def highestNeighbor(lat , lon):
+    return lat , lon
 
 def main(args):
     lookupSRTM(39 , -110)

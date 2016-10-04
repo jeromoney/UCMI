@@ -53,7 +53,7 @@ def grassViewshed(lat , lng, pointNum , outputDir = '/home/justin/Documents/ucmi
                         overwrite = True)
     
 
-def grassCommonViewpoints(viewNum , greaterthan , altitude):
+def grassCommonViewpoints(viewNum , greaterthan , altitude , userid):
     filename = 'commonviewshed' + str(viewNum)
     # redudant conections to grass
     g = connect2grass64()
