@@ -11,13 +11,12 @@ from viewsheds64 import initGrassSetup , grassViewshed , grassCommonViewpoints
 unzipCmd = 'unzip -n -d {unzipDir} {files};'
 url = "wget -P {geodataDir} https://dds.cr.usgs.gov/srtm/version2_1/SRTM1/Region_0{region}/{filename};"
 gdalwarp = 'gdalwarp -t_srs EPSG:3857 -r cubic {filename} {gdalwarpDir}/{tifFilename};'
-gdal_merge = 'gdal_merge.py -o {tilename} *.tif;'
+gdal_merge = 'gdal_merge.py -o {tilename} {directory}*.tif;'
 
 
 # directories
-unzipDir = '/home/justin/Documents/ucmi/geodata/zip/tempEPSG4326'
-geodataDir = '/home/justin/Documents/ucmi/geodata/zip/'
-gdalwarpDir = '/home/justin/Documents/ucmi/geodata/zip/tempEPSG3857'
+geodataDir = 'geodata/cached_dems/'
+user_temp_dir = 'geodata/user_temp/'
 
 filename = "N%02dW%03d.hgt.zip"
 tilename = 'tile.tif'
@@ -33,12 +32,19 @@ query = """
 
 
 
-
-#class Users(Base):
- #   __table__ = Base.metadata.tables['srtm']
-
 # Queries databse for nearby lat , lon SRTMs
-def lookupSRTM(lat , lon , , userid):
+def lookupSRTM(lat , lon , userid):
+    # Makes directories if it doesn't already exist
+    def makeDir(path):
+        if not os.path.isdir(path):
+            os.mkdir(path)
+    # set up directories for user
+    makeDir(user_temp_dir + userid)
+    unzipDir = user_temp_dir + userid + '/tempEPSG4326/'
+    gdalwarpDir = user_temp_dir + userid + '/tempEPSG3857/'
+    makeDir(gdalwarpDir)
+    makeDir(unzipDir)
+
     # connect to database"dbname=test user=postgres password=secret"
     conn = psycopg2.connect("dbname=gisdb user=justin password=bobo24")
     
@@ -64,29 +70,30 @@ def lookupSRTM(lat , lon , , userid):
     os.system(commandList)
     
     # unzip
+    print "unzipping...."
     commandList = ''
-    os.chdir(geodataDir)
     for name in filenames:
-        commandList += unzipCmd.format(files = name , unzipDir = unzipDir)
+        commandList += unzipCmd.format(files = geodataDir + name , unzipDir = unzipDir)
     os.system(commandList)
     
     # convert to 3857
+    print "converting to EPSG:3857...."
     commandList = ''
-    os.chdir(unzipDir)
     for name in filenames:
-        commandList += gdalwarp.format(filename = name[:-4] , gdalwarpDir = gdalwarpDir , tifFilename = name[:-7]+'tif' )
+        commandList += gdalwarp.format(filename = unzipDir + name[:-4] , gdalwarpDir = gdalwarpDir , tifFilename =  name[:-7]+'tif' )
     os.system(commandList)
     
     # merge tiles
-    os.chdir(gdalwarpDir)
-    os.system(gdal_merge.format(tilename = tilename))
-    
+    print "merging tiles"
+    os.system(gdal_merge.format(tilename = gdalwarpDir + tilename , directory = gdalwarpDir))
+
+
     
     #deleting files in EPSG4326 folder
     os.system('rm {0}/*'.format(unzipDir))
     # load file into grassgis
-    initGrassSetup()
-
+    # order is in this way, so final merget tiled is deleted last
+    initGrassSetup(gdalwarpDir)
     #deleting all files in EPSG3857
     os.system('rm {0}/*'.format(gdalwarpDir))
 
@@ -94,11 +101,11 @@ def lookupSRTM(lat , lon , , userid):
 def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altitude , userid):
     lat , lon = highestNeighbor(lat , lon)
     if firstMarker:
-        lookupSRTM(lat , lon , , userid)
+        lookupSRTM(lat , lon , userid)
     # run viewshed on point
     grassViewshed(lat ,lon , pointNum)
     # use mapcalc to find common viewpoints
-    grassCommonViewpoints(viewNum , greaterthan , altitude)
+    grassCommonViewpoints(viewNum , greaterthan , altitude , userid)
 
 def highestNeighbor(lat , lon):
     return lat , lon

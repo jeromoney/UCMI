@@ -19,6 +19,12 @@ app.secret_key = 'xxxxyyyyyzzzzz'
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+def returnID():
+    userid = request.cookies.get('remember_token')
+    if userid is None:
+        userid = max(request.cookies.get('session') , 'anonymous')
+    userid = userid[-9:]
+    return userid
 
 
 @app.route('/elevationfilter', methods=['GET', 'POST'])
@@ -27,7 +33,7 @@ def elevationfilter():
     altitude = float(form['altitude'])
     greaterthan = (form['greaterthan'] == 'greaterthan')
     viewNum = int(form['viewNum'])
-    grassCommonViewpoints(viewNum , greaterthan , altitude , userid)
+    grassCommonViewpoints(viewNum , greaterthan , altitude , returnID())
     return '0'
 
 @app.route('/python', methods=['GET', 'POST'])
@@ -40,7 +46,7 @@ def pythonScript():
     viewNum = int(form['viewNum'])
     firstMarker = (pointNum == 1)
     greaterthan = (form['greaterthan'] == 'greaterthan')
-    pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude , userid)
+    pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude , returnID())
     return '0'
 
 @app.route('/<path:path>')
@@ -51,11 +57,6 @@ def serve_static(path):
 def index():
     user = User()
     login_user(user, remember=True)
-    global userid
-    userid = request.cookies.get('remember_token')
-    if userid is None:
-        userid = max(request.cookies.get('session') , 'anonymous')
-    userid = userid[-9:]
     return send_from_directory('static', 'index.html')
     
 

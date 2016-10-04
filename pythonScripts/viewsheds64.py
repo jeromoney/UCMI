@@ -14,12 +14,12 @@ viewshedDir = '/home/justin/Documents/ucmi/UCMI/static/viewsheds/'
 #     >>> expr1 = '"%s" = "%s" * 10' % (output, input)
 # r.cuda.viewshed --overwrite input=n38_w106_1arc_v3@grass64 output=fastviewshed coordinate=1,1
 
-def initGrassSetup(filename = 'tile.tif'):
+def initGrassSetup(gdalwarpDir, filename = 'tile.tif'):
     g = connect2grass64()
     # r.in.gdal input=/home/justin/Documents/ucmi/geodata/zip/tempEPSG3857/tile.tif output=tile
     g.parse_command(
         'r.in.gdal',
-        input = '/home/justin/Documents/ucmi/geodata/zip/tempEPSG3857/' + filename,
+        input = gdalwarpDir + filename,
         output = filename[:-4],
         overwrite = True, 
         )
@@ -45,6 +45,7 @@ def grassViewshed(lat , lng, pointNum , outputDir = '/home/justin/Documents/ucmi
     rasters = g.list_strings(type = 'rast')
     srtm = [raster for raster in rasters if 'tile' in raster][0]
     viewName = "viewshed{0}".format(pointNum)
+    print 'r.cuda.viewshed'
     g.parse_command('r.cuda.viewshed',
                         input = srtm ,
                         output= viewName ,
@@ -70,14 +71,17 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude , userid):
         expression = 'combined = '  +  '(tile@grass64   {0}  {1})'.format(sign , altitude)
     else:
         expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@grass64   {0}  {1})'.format(sign , altitude)
+    print "map calc"
     g.mapcalc(exp = expression, overwrite = True)        
     
     # make 0 cells null
+    print "r.null"
     g.parse_command('r.null',
                     map='combined@grass64',
                     setnull = 0)
     #r.out.png -t -w --overwrite input=my_viewshed@ucmiGeoData output=/home/justin/Documents/ucmi/geodata/viewsheds/viewshed.png
     #not sure why I can't call as r.out.png(...)
+    print "r.out"
     g.parse_command('r.out.png',
         flags = 'wt', # makes null cells transparent and w outputs world file
         input = 'combined@grass64',
