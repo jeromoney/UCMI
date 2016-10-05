@@ -99,7 +99,6 @@ def lookupSRTM(lat , lon , userid):
 
 
 def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altitude , userid):
-    lat , lon = highestNeighbor(lat , lon)
     if firstMarker:
         lookupSRTM(lat , lon , userid)
     # run viewshed on point
@@ -107,8 +106,7 @@ def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altit
     # use mapcalc to find common viewpoints
     grassCommonViewpoints(viewNum , greaterthan , altitude , userid)
 
-def highestNeighbor(lat , lon):
-    return lat , lon
+
 
 def main(args):
     lookupSRTM(39 , -110)

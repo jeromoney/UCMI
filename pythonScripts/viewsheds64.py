@@ -9,6 +9,27 @@ from pyproj import Proj, transform
 viewshedDir = '/home/justin/Documents/ucmi/UCMI/static/viewsheds/'
 
 
+# Finds the highest neighbor. Currently using r.what but that might be inneficient
+def highestNeighbor(x , y):
+    # redudant conections to grass
+    g = connect2grass64()
+    cell_res = 35.18111132 # meters. hard coded for now
+    # r.what --v -f -n input=tile@grass64 east_north=-11796467.922180,4637784.666290
+    maxElevation = -1000
+    for i in range(- int(500 / cell_res) , int(500 / cell_res)):
+        for j in range(- int(500 / cell_res) , int(500 / cell_res)):
+            x_coor = x + i * cell_res
+            y_coor = y + j * cell_res
+            info = g.parse_command('r.what' , 
+                            input = 'tile@grass64',
+                            east_north= str(x_coor) + ',' + str(y_coor))
+            elevation = int(info.keys()[0].split('||')[1])
+            if maxElevation < elevation:
+                print elevation
+                maxElevation = elevation
+                max_x = x_coor
+                max_y = y_coor
+    return max_x , max_y
 
 # def mapcalc(exp, quiet = False, verbose = False, overwrite = False, **kwargs):
 #     >>> expr1 = '"%s" = "%s" * 10' % (output, input)
@@ -42,10 +63,11 @@ def grassViewshed(lat , lng, pointNum , outputDir = '/home/justin/Documents/ucmi
     outProj = Proj(init='epsg:3857')
     inProj = Proj(init='epsg:4326')
     x , y = transform(inProj , outProj , lng , lat)
+    x , y = highestNeighbor(x , y)
     rasters = g.list_strings(type = 'rast')
     srtm = [raster for raster in rasters if 'tile' in raster][0]
     viewName = "viewshed{0}".format(pointNum)
-    print 'r.cuda.viewshed'
+    print 'r.cuda.viewshed' , (x , y)
     g.parse_command('r.cuda.viewshed',
                         input = srtm ,
                         output= viewName ,
@@ -72,6 +94,7 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude , userid):
     else:
         expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@grass64   {0}  {1})'.format(sign , altitude)
     print "map calc"
+    print expression
     g.mapcalc(exp = expression, overwrite = True)        
     
     # make 0 cells null

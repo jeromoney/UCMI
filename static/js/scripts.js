@@ -184,7 +184,7 @@ function radarOverlay(bounds, image, map) {
 
 
 function showImage(){
-    var srcImage = '../viewsheds/commonviewshed' + viewNum + '.png';
+    var srcImage = '../viewsheds/commonviewshed' + viewNum + '.png' + "?lastmod=" + Date.now();
     if (typeof overlay != 'undefined'){
         overlay.refreshImage(srcImage);
     }
@@ -193,7 +193,7 @@ function showImage(){
         // the bounds of the image, and a reference to the map.
         // Get the bounds from JSON file
         var data = $.ajax({
-            url: '../viewsheds/commonviewshed' + viewNum + '.json',
+            url: '../viewsheds/commonviewshed' + viewNum + '.json' + "?lastmod=" + Date.now(),
             async: false,
             dataType: 'json'}).responseJSON;
 
@@ -277,7 +277,7 @@ function showImage(){
     
     radarOverlay.prototype.refreshImage = function(imageSRC){
     // adding last mode to prevent browser caching
-    this.image_ = imageSRC + "?lastmod=" + Date.now();
+    this.image_ = imageSRC;
     this.setMap(null);
     this.setMap(this.map_);
 
