@@ -1,0 +1,43 @@
+Online Image Identifier
+
+Name
+UCMI
+
+The Google Map
+HTML, CSS, Javscript
+
+index.html -- Displays map
+scripts.js -- controls google map behavior
+
+Actions
+Search -- enter text string to navigate to location
+Click -- click on map, create icon, send position to viewshed calculator, update map
+Delete -- remove icon, update map without position
+
+positions -- array of markers
+
+
+
+Series of c
+
+Webpage (front)
+Input 
+1. Shows image with peaks labeled
+2. Show map and click on google map
+3. Each map is a new viewshed
+4. Multiply viewsheds with mapcalc
+5. Display product
+
+Servers
+* Web server
+    * leaflet map
+* GRASS
+    * receive commands
+    option 1 (add)
+    * excecute viewshed
+    * execute mapcalc
+    option 2 (delete)
+    * delete file
+    * execute mapcalc
+
+viewshed calculator (back) -- pass into GRASS

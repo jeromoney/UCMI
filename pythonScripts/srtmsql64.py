@@ -15,8 +15,8 @@ gdal_merge = 'gdal_merge.py -o {tilename} {directory}*.tif;'
 
 
 # directories
-geodataDir = 'geodata/cached_dems/'
-user_temp_dir = 'geodata/user_temp/'
+geodataDir = '../geodata/cached_dems/'
+user_temp_dir = '../geodata/user_temp/'
 
 filename = "N%02dW%03d.hgt.zip"
 tilename = 'tile.tif'

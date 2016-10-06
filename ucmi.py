@@ -1,9 +1,17 @@
-import math
+# doing execfile() on this file will alter the current interpreter's
+# environment so you can import libraries in the virtualenv
+#!/usr/bin/env python
+activate_this_file = "venv/bin/activate_this.py"
+
+execfile(activate_this_file, dict(__file__=activate_this_file))
+
+import math , json
 
 from flask import Flask , request, send_from_directory , session
-from flask.ext.login import login_user , UserMixin , LoginManager
-from pythonScripts.viewsheds64 import grassCommonViewpoints
-from pythonScripts.srtmsql64 import pointQuery
+from flask_login import login_user , UserMixin , LoginManager
+from pythonScripts.send import sendMsg
+
+# TODO: Start msg server script in seperate process
 
 class User(UserMixin):
     def __init__(self):
@@ -29,24 +37,27 @@ def returnID():
 
 @app.route('/elevationfilter', methods=['GET', 'POST'])
 def elevationfilter():
-    form = request.form
-    altitude = float(form['altitude'])
-    greaterthan = (form['greaterthan'] == 'greaterthan')
-    viewNum = int(form['viewNum'])
-    grassCommonViewpoints(viewNum , greaterthan , altitude , returnID())
+    formStr = json.dumps(['grassCommonViewpoints'] + [request.form] + [returnID()])
+    sendMsg(formStr)
+    #altitude = float(form['altitude'])
+    #greaterthan = (form['greaterthan'] == 'greaterthan')
+    #viewNum = int(form['viewNum'])
+    #grassCommonViewpoints(viewNum , greaterthan , altitude , returnID())
     return '0'
 
 @app.route('/python', methods=['GET', 'POST'])
 def pythonScript():
-    form = request.form
-    altitude = float(form['altitude'])
-    lat = form['lat']
-    lng = form['lng']
-    pointNum = int(form['size'])
-    viewNum = int(form['viewNum'])
-    firstMarker = (pointNum == 1)
-    greaterthan = (form['greaterthan'] == 'greaterthan')
-    pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude , returnID())
+    formStr = json.dumps(['pointQuery'] + [request.form] + [returnID()])
+    sendMsg(formStr)
+    #form = request.form
+    #altitude = float(form['altitude'])
+    #lat = form['lat']
+    #lng = form['lng']
+    #pointNum = int(form['size'])
+    #viewNum = int(form['viewNum'])
+    #firstMarker = (pointNum == 1)
+    #greaterthan = (form['greaterthan'] == 'greaterthan')
+    #pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude , returnID())
     return '0'
 
 @app.route('/<path:path>')
