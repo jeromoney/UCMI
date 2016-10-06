@@ -11,6 +11,7 @@ import pika , json
 connection = pika.BlockingConnection(pika.ConnectionParameters(
         host='localhost'))
 channel = connection.channel()
+channel.queue_delete(queue='task_queue')
 
 channel.queue_declare(queue='task_queue')
 
@@ -31,7 +32,6 @@ def callback(ch, method, properties, body):
         pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude , id)
 
     print(" [x] Done:  %r" % body)
-    ch.basic_ack(delivery_tag = method.delivery_tag)
     f = file('../static/viewsheds/{0}/commonviewshed{1}.done'.format(id , viewNum) , 'w')
     f.close()
 

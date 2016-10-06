@@ -158,10 +158,29 @@ function returnLocation(event) {
         method: "POST",
         data: parameters,
         }).done(function() {
-            showImage();
+           checkFlag();
         });
 };
 
+
+function checkFlag() {
+        if(isTaskDone(viewNum) == false) {
+           window.setTimeout(checkFlag, 1000); /* this checks the flag every 1000 milliseconds*/
+        } else {
+            showImage();
+    }
+}
+
+
+
+// Returns true if task is finished
+function isTaskDone(viewNum){
+    var data = $.ajax({
+        url: 'isTaskDone/' + viewNum,
+        async: false,
+        dataType: 'json'}).responseJSON;
+        return data['done'];
+}
 
 
 // Create a constructor for your custom overlay, and set any initialization parameters.
@@ -301,6 +320,7 @@ function altitudeFilter(){
 // Need to add form verification
 
 function altitudeRefresh(){
+    viewNum ++;
     var greaterthan = $("#altFilter").val();
     var altitude = getAltitude();
     var parameters = {
@@ -313,7 +333,7 @@ function altitudeRefresh(){
         method: "POST",
         data: parameters,
         }).done(function() {
-            showImage();
+            checkFlag();
         });
 }
 

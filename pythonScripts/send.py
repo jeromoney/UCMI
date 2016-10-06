@@ -12,7 +12,5 @@ def sendMsg(formStr):
     channel.basic_publish(exchange='',
                       routing_key='task_queue',
                       body=formStr,
-                      properties=pika.BasicProperties(
-                         delivery_mode = 2, # make message persistent
-                      ))
+                      )
     connection.close()

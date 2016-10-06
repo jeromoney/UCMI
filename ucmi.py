@@ -35,7 +35,8 @@ def returnID():
 
 def deleteDoneFile(viewNum):
     doneFile = 'static/viewsheds/{0}/commonviewshed{1}.done'.format(returnID() , viewNum)
-    os.remove(doneFile)
+    if os.path.exists(doneFile):
+        os.remove(doneFile)
 
 @app.route('/elevationfilter', methods=['GET', 'POST'])
 def elevationfilter():
@@ -72,7 +73,8 @@ def index():
 @app.route('/isTaskDone/<viewNum>' , methods=['GET'])
 def isTaskDone(viewNum):
     doneFile = 'static/viewsheds/{0}/commonviewshed{1}.done'.format(returnID() , viewNum)
-    return str(os.path.exists(doneFile))
+    data = json.dumps({'done':os.path.exists(doneFile)})
+    return data
 
 
 # Checks if necessary elevation files are present and downloads if not available.

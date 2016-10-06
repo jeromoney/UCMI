@@ -14,7 +14,7 @@ def connect2grass64(userid):
     gisbase = os.environ['GISBASE'] = "/home/justin/grass/grass-6.4.6svn"
     gisdbase = os.path.join(os.environ['HOME'], "grassdata64")
     location = "grass64location"
-    mapset   = 'grass64'
+    mapset   = str(userid)
     sys.path.append(os.path.join(os.environ['GISBASE'], "etc", "python"))
     import grass.script as g
     import grass.script.setup as gsetup
@@ -27,7 +27,7 @@ def connect2grass64(userid):
 
 
 # Finds the highest neighbor. Currently using r.what but that might be inneficient
-def highestNeighbor(x , y , g):
+def highestNeighbor(x , y , g , userid):
 
     cell_res = 35.18111132 # meters. hard coded for now
     # r.what --v -f -n input=tile@grass64 east_north=-11796467.922180,4637784.666290
@@ -37,7 +37,7 @@ def highestNeighbor(x , y , g):
             x_coor = x + i * cell_res
             y_coor = y + j * cell_res
             info = g.parse_command('r.what' , 
-                            input = 'tile@grass64',
+                            input = 'tile@' + str(userid),
                             east_north= str(x_coor) + ',' + str(y_coor))
             elevation = int(info.keys()[0].split('||')[1])
             if maxElevation < elevation:
@@ -62,7 +62,7 @@ def initGrassSetup(gdalwarpDir, userid,  filename = 'tile.tif'):
         )
         
     g.parse_command('g.region' ,
-                    rast = filename[:-4] + '@grass64')
+                    rast = filename[:-4] + '@' + str(userid))
     
     # remove old viewsheds
     viewsheds = [viewshed for viewshed in g.list_strings(type = 'rast') if 'viewshed' in viewshed]
@@ -78,7 +78,7 @@ def grassViewshed(lat , lng, pointNum , userid, outputDir = '/home/justin/Docume
     outProj = Proj(init='epsg:3857')
     inProj = Proj(init='epsg:4326')
     x , y = transform(inProj , outProj , lng , lat)
-    x , y = highestNeighbor(x , y , g)
+    x , y = highestNeighbor(x , y , g , userid)
     rasters = g.list_strings(type = 'rast')
     srtm = [raster for raster in rasters if 'tile' in raster][0]
     viewName = "viewshed{0}".format(pointNum)
@@ -104,9 +104,9 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude , userid):
     
     # No viewsheds exists, so display area above/below altitude filter
     if viewNum == -1:
-        expression = 'combined = '  +  '(tile@grass64   {0}  {1})'.format(sign , altitude)
+        expression = 'combined = '  +  '(tile@{0}   {1}  {2})'.format(userid, sign , altitude)
     else:
-        expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@grass64   {0}  {1})'.format(sign , altitude)
+        expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@{0}   {1}  {2})'.format(userid, sign , altitude)
     print "map calc"
     print expression
     g.mapcalc(exp = expression, overwrite = True)        
@@ -114,7 +114,7 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude , userid):
     # make 0 cells null
     print "r.null"
     g.parse_command('r.null',
-                    map='combined@grass64',
+                    map='combined@' + str(userid),
                     setnull = 0)
     #r.out.png -t -w --overwrite input=my_viewshed@ucmiGeoData output=/home/justin/Documents/ucmi/geodata/viewsheds/viewshed.png
     #not sure why I can't call as r.out.png(...)
@@ -124,7 +124,7 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude , userid):
         os.mkdir(viewshedDir.format(userid))
     g.parse_command('r.out.png',
         flags = 'wt', # makes null cells transparent and w outputs world file
-        input = 'combined@grass64',
+        input = 'combined@' + str(userid),
         output = viewshedDir.format(userid) + filename + '.png',
         overwrite = True)
         
@@ -166,7 +166,7 @@ def wld2Json(outputDir , filename , userid ):
 
 
 def main(args):
-    connect2grass64()
+    pass
 
 if __name__ == '__main__':
     import sys
