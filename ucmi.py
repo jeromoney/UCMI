@@ -9,8 +9,7 @@ import math , json , os
 
 from flask import Flask , request, send_from_directory , session
 from flask_login import login_user , UserMixin , LoginManager
-from pythonScripts.send import sendMsg
-
+from pythonScripts.send import sendMsg 
 # TODO: Start msg server script in seperate process
 
 class User(UserMixin):
@@ -34,15 +33,20 @@ def returnID():
     userid = userid[-9:]
     return userid
 
+def deleteDoneFile(viewNum):
+    doneFile = 'static/viewsheds/{0}/commonviewshed{1}.done'.format(returnID() , viewNum)
+    os.remove(doneFile)
 
 @app.route('/elevationfilter', methods=['GET', 'POST'])
 def elevationfilter():
+    deleteDoneFile(request.form['viewNum'])
     formStr = json.dumps(['grassCommonViewpoints'] + [request.form] + [returnID()])
     sendMsg(formStr)
     return '0'
 
 @app.route('/python', methods=['GET', 'POST'])
 def pythonScript():
+    deleteDoneFile(request.form['viewNum'])
     formStr = json.dumps(['pointQuery'] + [request.form] + [returnID()])
     sendMsg(formStr)
     return '0'
@@ -63,7 +67,13 @@ def index():
     user = User()
     login_user(user, remember=True)
     return send_from_directory('static', 'index.html')
-    
+
+# checks if task is done
+@app.route('/isTaskDone/<viewNum>' , methods=['GET'])
+def isTaskDone(viewNum):
+    doneFile = 'static/viewsheds/{0}/commonviewshed{1}.done'.format(returnID() , viewNum)
+    return str(os.path.exists(doneFile))
+
 
 # Checks if necessary elevation files are present and downloads if not available.
 def srtmDownload(lat, lng):
