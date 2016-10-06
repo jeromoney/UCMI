@@ -5,7 +5,7 @@ activate_this_file = "venv/bin/activate_this.py"
 
 execfile(activate_this_file, dict(__file__=activate_this_file))
 
-import math , json
+import math , json , os
 
 from flask import Flask , request, send_from_directory , session
 from flask_login import login_user , UserMixin , LoginManager
@@ -39,31 +39,25 @@ def returnID():
 def elevationfilter():
     formStr = json.dumps(['grassCommonViewpoints'] + [request.form] + [returnID()])
     sendMsg(formStr)
-    #altitude = float(form['altitude'])
-    #greaterthan = (form['greaterthan'] == 'greaterthan')
-    #viewNum = int(form['viewNum'])
-    #grassCommonViewpoints(viewNum , greaterthan , altitude , returnID())
     return '0'
 
 @app.route('/python', methods=['GET', 'POST'])
 def pythonScript():
     formStr = json.dumps(['pointQuery'] + [request.form] + [returnID()])
     sendMsg(formStr)
-    #form = request.form
-    #altitude = float(form['altitude'])
-    #lat = form['lat']
-    #lng = form['lng']
-    #pointNum = int(form['size'])
-    #viewNum = int(form['viewNum'])
-    #firstMarker = (pointNum == 1)
-    #greaterthan = (form['greaterthan'] == 'greaterthan')
-    #pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude , returnID())
     return '0'
 
+# user specific itmes
+@app.route('/viewsheds/<filename>')
+def serve_usrstatic(filename):
+    itemDir = 'static' + '/viewsheds/' + str(returnID())
+    return send_from_directory(itemDir, filename)
+
+# user non-specific items
 @app.route('/<path:path>')
 def serve_static(path):
     return send_from_directory('js', path) #not sure why I have js directory, but it works
-    
+
 @app.route('/')
 def index():
     user = User()

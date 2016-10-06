@@ -284,16 +284,6 @@ function showImage(){
     }
 }
 
-function dickbutt(butt){
-    if (butt){
-        var srcImage = '../viewsheds/dickbutt.png';
-        overlay.refreshImage(srcImage);
-       
-    }
-    else{
-        console.log(            $('input[name="editCheckbox"]').bootstrapSwitch('state'));
-    }
-};
 
 
 function altitudeFilter(){

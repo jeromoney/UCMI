@@ -93,7 +93,7 @@ def lookupSRTM(lat , lon , userid):
     os.system('rm {0}/*'.format(unzipDir))
     # load file into grassgis
     # order is in this way, so final merget tiled is deleted last
-    initGrassSetup(gdalwarpDir)
+    initGrassSetup(gdalwarpDir , userid)
     #deleting all files in EPSG3857
     os.system('rm {0}/*'.format(gdalwarpDir))
 
@@ -102,7 +102,7 @@ def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altit
     if firstMarker:
         lookupSRTM(lat , lon , userid)
     # run viewshed on point
-    grassViewshed(lat ,lon , pointNum)
+    grassViewshed(lat ,lon , pointNum , userid)
     # use mapcalc to find common viewpoints
     grassCommonViewpoints(viewNum , greaterthan , altitude , userid)
 
