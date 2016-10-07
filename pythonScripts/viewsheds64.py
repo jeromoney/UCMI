@@ -101,7 +101,7 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude , userid):
         sign = '>'
     else:
         sign = '<'
-    
+
     # No viewsheds exists, so display area above/below altitude filter
     if viewNum == -1:
         expression = 'combined = '  +  '(tile@{0}   {1}  {2})'.format(userid, sign , altitude)
@@ -109,7 +109,7 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude , userid):
         expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@{0}   {1}  {2})'.format(userid, sign , altitude)
     print "map calc"
     print expression
-    g.mapcalc(exp = expression, overwrite = True)        
+    g.mapcalc(exp = expression, overwrite = True , verbose=True)        
     
     # make 0 cells null
     print "r.null"

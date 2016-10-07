@@ -16,6 +16,12 @@ radarOverlay.prototype = new google.maps.OverlayView();
 
 // initialize checkbox
 $("[name='editCheckbox']").bootstrapSwitch();
+$("[name='showView']").bootstrapSwitch();
+
+$('input[name="showView"]').on('switchChange.bootstrapSwitch', function(event, state) {
+  showView();
+});
+
 
 $(document).ready(function(){
     $('#altFilter').click(function() {
@@ -26,6 +32,12 @@ $(document).ready(function(){
 $(document).ready(function(){
     $('#altRefresh').click(function() {
         altitudeRefresh();
+    })
+});
+
+$(document).ready(function(){
+    $('#showView').click(function() {
+        showView();
     })
 });
 
@@ -122,8 +134,10 @@ function initAutoComplete() {
             if ($('input[name="editCheckbox"]').bootstrapSwitch('state')){
                 returnLocation(event);
             };
+            
             });
-        
+            
+
 }
         
 
@@ -162,15 +176,44 @@ function returnLocation(event) {
         });
 };
 
-
+// Queries server every second to see if GIS processing is done
 function checkFlag() {
         if(isTaskDone(viewNum) == false) {
-           window.setTimeout(checkFlag, 1000); /* this checks the flag every 1000 milliseconds*/
+            showProgressBar(true);
+            window.setTimeout(checkFlag, 1000); /* this checks the flag every 1000 milliseconds*/
         } else {
+            showProgressBar(false);
             showImage();
     }
 }
 
+// Shows and hides progress bar
+function showProgressBar(show) {
+       if (show){
+           // show progress bar
+            $("#progress").removeClass('hidden');
+       }
+       else {
+           // hide progress bar
+           $("#progress").addClass('hidden');
+       };
+}
+
+// Toggles viewshed on/off
+function showView(){
+    // if state is false. show view
+    var state = $('input[name="showView"]').bootstrapSwitch('state');
+    if (typeof overlay != 'undefined'){
+        if (state){
+            // hide view
+            overlay.hide();
+            }
+        else{
+            // hide view
+            overlay.show();
+        }
+    }
+}
 
 
 // Returns true if task is finished
@@ -284,7 +327,19 @@ function showImage(){
         div.style.height = (sw.y - ne.y) + 'px';
     };        
 
+      // Set the visibility to 'hidden' or 'visible'.
+      radarOverlay.prototype.hide = function() {
+        if (this.div_) {
+          // The visibility property must be a string enclosed in quotes.
+          this.div_.style.visibility = 'hidden';
+        }
+      };
 
+      radarOverlay.prototype.show = function() {
+        if (this.div_) {
+          this.div_.style.visibility = 'visible';
+        }
+      };
 
     // The onRemove() method will be called automatically from the API if
     // we ever set the overlay's map property to 'null'.
