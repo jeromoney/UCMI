@@ -5,12 +5,14 @@ activate_this_file = "venv/bin/activate_this.py"
 
 execfile(activate_this_file, dict(__file__=activate_this_file))
 
-import math , json , os
+
+
+import math , json , os , subprocess
 
 from flask import Flask , request, send_from_directory , session
 from flask_login import login_user , UserMixin , LoginManager
 from pythonScripts.send import sendMsg 
-# TODO: Start msg server script in seperate process
+
 
 class User(UserMixin):
     def __init__(self):

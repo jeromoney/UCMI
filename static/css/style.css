@@ -50,3 +50,14 @@ html, body {
       #target {
         width: 345px;
       }
+      .floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 30%;
+      }
+      .floating-panel-alt {
+        position: absolute;
+        top: 100px;
+        left: 5%;
+      }
+

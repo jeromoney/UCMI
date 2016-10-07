@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
-    <title>Places Searchbox</title>
+    <title>The UCMI System</title>
 
     
     <!-- SCRIPTS -->
@@ -24,22 +24,21 @@
     <link href="css/bootstrap-switch.min.css" rel="stylesheet">
 
   </head>
-  <body>
-    <input type="checkbox" id ="showView" name="showView" state="False" data-on-text="Show View" data-off-text="Hide View" data-off-color="warning">
-
-      
-      
-      <div class="progress">
-    
-        <div id="progress" class="progress-bar progress-bar-striped active hidden" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-            <span class="sr-only">100% Complete</span>
-        </div>
-        </div>
-      
-    <input type="checkbox" name="editCheckbox" state="False" data-on-text="Unlocked" data-off-text="Locked" data-off-color="warning">
+  
+  <body> 
     <input id="pac-input" class="controls" type="text" placeholder="Search Box">
-       
-    <div class="input-group">
+    
+    <div id="map"></div>
+
+    <div class="floating-panel">
+        <div class="row">
+            <div class="">
+                <input type="checkbox" id ="showView"  name="showView" state="False" data-on-text="Show View" data-off-text="Hide View" data-off-color="warning">
+                <input type="checkbox"  name="editCheckbox" state="False" data-on-text="Unlocked" data-off-text="Locked" data-off-color="warning">
+            </div>
+        </div>
+        <div class="row" style="width:30%">
+           <div class="input-group">
         <div class="input-group-btn">
         <!-- Buttons -->
             <button id="altRefresh" type="button" class="btn btn-default">Go!</button>
@@ -48,25 +47,16 @@
         <input id="altitude" type="text" class="form-control" aria-label="..." placeholder="Altitude filter">
         <span class="input-group-addon">ft</span>
     </div>
-    <div id="map"></div>
+            <div  class="row progress">
+                <div id="progress" class="progress-bar progress-bar-striped active hidden width:10%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                    <span class="sr-only">100% Complete</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    
+    
     <script src="../js/scripts.js" defer></script></script>
-
-    <!----DEBUG BELOW-->
-    
-    
-       <input type="button"   value="dick butt" onclick="dickbutt(false);">
-        <input type="button"  value="dick butt2" onclick="dickbutt(true);">
-        <div class="progress">
-  <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">
-    <span class="sr-only">100% Complete</span>
-  </div>
-</div>
-        
-        
-       
-    
-    
-
-  </body>
+    </body>
 </html>
