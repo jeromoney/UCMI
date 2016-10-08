@@ -1,13 +1,17 @@
 # doing execfile() on this file will alter the current interpreter's
 # environment so you can import libraries in the virtualenv
 #!/usr/bin/env python
-activate_this_file = "venv/bin/activate_this.py"
+
+import inspect , os
+script_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) # script directory
+
+activate_this_file = script_dir+ "/venv/bin/activate_this.py"
 
 execfile(activate_this_file, dict(__file__=activate_this_file))
 
 
 
-import math , json , os , subprocess
+import math , json  , subprocess , md5
 
 from flask import Flask , request, send_from_directory , session
 from flask_login import login_user , UserMixin , LoginManager
@@ -28,7 +32,19 @@ app.secret_key = 'xxxxyyyyyzzzzz'
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+def create_app(config_filename = None):
+    app = Flask(__name__, static_url_path='')
+    app.secret_key = 'xxxxyyyyyzzzzz'
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    return app
+
 def returnID():
+
+    return str(request.remote_addr)
+
+
+def returnID_old():
     userid = request.cookies.get('remember_token')
     if userid is None:
         userid = max(request.cookies.get('session') , 'anonymous')
@@ -74,7 +90,7 @@ def index():
 # checks if task is done
 @app.route('/isTaskDone/<viewNum>' , methods=['GET'])
 def isTaskDone(viewNum):
-    doneFile = 'static/viewsheds/{0}/commonviewshed{1}.done'.format(returnID() , viewNum)
+    doneFile = script_dir + '/static/viewsheds/{0}/commonviewshed{1}.done'.format(returnID() , viewNum)
     data = json.dumps({'done':os.path.exists(doneFile)})
     return data
 

@@ -14,15 +14,30 @@ def connect2grass64(userid):
     gisbase = os.environ['GISBASE'] = "/home/justin/grass/grass-6.4.6svn"
     gisdbase = os.path.join(os.environ['HOME'], "grassdata64")
     location = "grass64location"
-    mapset   = str(userid)
+    mapset   = "grass64"
     sys.path.append(os.path.join(os.environ['GISBASE'], "etc", "python"))
     import grass.script as g
     import grass.script.setup as gsetup
     gsetup.init(gisbase,
                 gisdbase, location, mapset)
-    g.parse_command('g.mapset',
-                    mapset = str(userid),
-                    flags = 'c')
+                
+    mapsets = g.parse_command('g.mapset',
+                    flags = 'l')
+    mapsets = mapsets.keys()[0].split(' ')
+    if userid not in mapsets:
+        # create mapset
+        g.parse_command('g.mapset',
+                        mapset = str(userid),
+                        flags = 'c')
+    else:
+        # don't create mapset sinceit already exists
+        g.parse_command('g.mapset',
+                mapset = str(userid),
+                )
+    mapset   =  userid
+    gsetup.init(gisbase,
+            gisdbase, location, mapset)
+
     return g
 
 
@@ -57,7 +72,7 @@ def initGrassSetup(gdalwarpDir, userid,  filename = 'tile.tif'):
     g.parse_command(
         'r.in.gdal',
         input = gdalwarpDir + filename,
-        output = filename[:-4],
+        output = filename[:-4] ,
         overwrite = True, 
         )
         
@@ -65,7 +80,7 @@ def initGrassSetup(gdalwarpDir, userid,  filename = 'tile.tif'):
                     rast = filename[:-4] + '@' + str(userid))
     
     # remove old viewsheds
-    viewsheds = [viewshed for viewshed in g.list_strings(type = 'rast') if 'viewshed' in viewshed]
+    viewsheds = [viewshed for viewshed in g.list_strings(type = 'rast') if 'viewshed' in viewshed and userid in viewshed]
     # g.remove -f rast=fastviewshed34@grass64,fastviewshed@grass64                    
     g.parse_command('g.remove' ,
         flags ='f',
@@ -80,8 +95,9 @@ def grassViewshed(lat , lng, pointNum , userid, outputDir = '/home/justin/Docume
     x , y = transform(inProj , outProj , lng , lat)
     x , y = highestNeighbor(x , y , g , userid)
     rasters = g.list_strings(type = 'rast')
-    srtm = [raster for raster in rasters if 'tile' in raster][0]
-    viewName = "viewshed{0}".format(pointNum)
+    print rasters
+    srtm = [raster for raster in rasters if 'tile' in raster and userid in raster][0]
+    viewName = "viewshed{0}".format(pointNum )
     print 'r.cuda.viewshed' , (x , y)
     g.parse_command('r.cuda.viewshed',
                         input = srtm ,
@@ -96,7 +112,8 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude , userid):
     filename = 'commonviewshed' + str(viewNum)
 
     rasters = g.list_strings(type = 'rast')
-    viewshedRasters = [raster for raster in rasters if 'viewshed' in raster]
+    print rasters
+    viewshedRasters = [raster for raster in rasters if 'viewshed' in raster and userid in raster]
     if greaterthan:
         sign = '>'
     else:
