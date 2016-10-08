@@ -143,11 +143,10 @@ function initAutoComplete() {
 
        
  
-        
-        
       
 // When user clicks on map, marker is created and then triggers viewshed calculation
 function returnLocation(event) {
+    var dateStamp = Date.now();
     var latLng = event.latLng;
     var marker = new google.maps.Marker({
         position: latLng,
@@ -158,6 +157,7 @@ function returnLocation(event) {
     var altitude = getAltitude();
     var greaterthan = $("#altFilter").val();
     var parameters = {
+        dateStamp: dateStamp,
         lat: latLng.lat(),
         lng: latLng.lng(),
         size: viewMarkers.length,
@@ -165,22 +165,24 @@ function returnLocation(event) {
         altitude : altitude,
         greaterthan : greaterthan
     };
-        
+    
+    var callback = function (){
+       checkFlag(dateStamp );
+        };
+    
     // Sends lat lon to python script
     $.ajax({
         url: "python",
         method: "POST",
         data: parameters,
-        }).done(function() {
-           checkFlag();
-        });
+        }).done( callback());
 };
 
 // Queries server every second to see if GIS processing is done
-function checkFlag() {
-        if(isTaskDone(viewNum) == false) {
+function checkFlag(dateStamp) {
+        if(isTaskDone(dateStamp) == false) {
             showProgressBar(true);
-            window.setTimeout(checkFlag, 1000); /* this checks the flag every 1000 milliseconds*/
+            window.setTimeout(checkFlag, 1000 ,  dateStamp); /* this checks the flag every 1000 milliseconds*/
         } else {
             showProgressBar(false);
             showImage();
@@ -217,9 +219,9 @@ function showView(){
 
 
 // Returns true if task is finished
-function isTaskDone(viewNum){
+function isTaskDone(dateStampCheck){
     var data = $.ajax({
-        url: 'isTaskDone/' + viewNum,
+        url: 'isTaskDone/' + dateStampCheck,
         async: false,
         dataType: 'json'}).responseJSON;
         return data['done'];
@@ -378,7 +380,12 @@ function altitudeRefresh(){
     viewNum ++;
     var greaterthan = $("#altFilter").val();
     var altitude = getAltitude();
+    dateStamp = Date.now();
+    var callback = function (){
+        checkFlag(dateStamp );
+        };
     var parameters = {
+        dateStamp : dateStamp,
         altitude: altitude,
         greaterthan: greaterthan,
         viewNum: viewNum
@@ -387,9 +394,7 @@ function altitudeRefresh(){
         url: "elevationfilter",
         method: "POST",
         data: parameters,
-        }).done(function() {
-            checkFlag();
-        });
+        }).done(callback);
 }
 
 

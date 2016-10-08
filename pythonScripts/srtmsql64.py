@@ -104,7 +104,7 @@ def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altit
     # run viewshed on point
     grassViewshed(lat ,lon , pointNum , userid)
     # use mapcalc to find common viewpoints
-    grassCommonViewpoints(viewNum , greaterthan , altitude , userid)
+    grassCommonViewpoints(viewNum , greaterthan , altitude , userid )
 
 
 

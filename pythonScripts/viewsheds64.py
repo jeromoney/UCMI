@@ -106,7 +106,7 @@ def grassViewshed(lat , lng, pointNum , userid, outputDir = '/home/justin/Docume
                         max_dist = '50000',
                         overwrite = True)
     
-def grassCommonViewpoints(viewNum , greaterthan , altitude , userid):
+def grassCommonViewpoints(viewNum , greaterthan , altitude , userid ):
     g = connect2grass64(userid)
 
     filename = 'commonviewshed' + str(viewNum)
@@ -126,8 +126,8 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude , userid):
         expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@{0}   {1}  {2})'.format(userid, sign , altitude)
     print "map calc"
     print expression
-    g.mapcalc(exp = expression, overwrite = True , verbose=True)        
-    
+    info = g.mapcalc(exp = expression, overwrite = True , verbose=True)        
+    print info
     # make 0 cells null
     print "r.null"
     g.parse_command('r.null',

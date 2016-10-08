@@ -40,16 +40,8 @@ def create_app(config_filename = None):
     return app
 
 def returnID():
-
     return str(request.remote_addr)
 
-
-def returnID_old():
-    userid = request.cookies.get('remember_token')
-    if userid is None:
-        userid = max(request.cookies.get('session') , 'anonymous')
-    userid = userid[-9:]
-    return userid
 
 def deleteDoneFile(viewNum):
     doneFile = 'static/viewsheds/{0}/commonviewshed{1}.done'.format(returnID() , viewNum)
@@ -88,9 +80,9 @@ def index():
     return send_from_directory('static', 'index.html')
 
 # checks if task is done
-@app.route('/isTaskDone/<viewNum>' , methods=['GET'])
-def isTaskDone(viewNum):
-    doneFile = script_dir + '/static/viewsheds/{0}/commonviewshed{1}.done'.format(returnID() , viewNum)
+@app.route('/isTaskDone/<dateStamp>' , methods=['GET'])
+def isTaskDone(dateStamp):
+    doneFile = script_dir + '/static/viewsheds/{0}/{1}.done'.format(returnID() , dateStamp)
     data = json.dumps({'done':os.path.exists(doneFile)})
     return data
 

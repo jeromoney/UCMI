@@ -22,6 +22,7 @@ def callback(ch, method, properties, body):
     altitude = float(form['altitude'])
     greaterthan = (form['greaterthan'] == 'greaterthan')
     viewNum = int(form['viewNum'])
+    dateStamp = int(form['dateStamp'])
     if fnction == 'grassCommonViewpoints':
         grassCommonViewpoints(viewNum , greaterthan , altitude , id)
     elif fnction == 'pointQuery':
@@ -32,7 +33,7 @@ def callback(ch, method, properties, body):
         pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude , id)
 
     print(" [x] Done:  %r" % body)
-    f = file('../static/viewsheds/{0}/commonviewshed{1}.done'.format(id , viewNum) , 'w')
+    f = file('../static/viewsheds/{0}/{1}.done'.format(id , dateStamp) , 'w')
     f.close()
 
 
