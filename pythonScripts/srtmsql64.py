@@ -98,13 +98,13 @@ def lookupSRTM(lat , lon , userid):
     os.system('rm {0}/*'.format(gdalwarpDir))
 
 
-def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altitude , userid):
+def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altitude , userid , dateStamp):
     if firstMarker:
         lookupSRTM(lat , lon , userid)
     # run viewshed on point
     grassViewshed(lat ,lon , pointNum , userid)
     # use mapcalc to find common viewpoints
-    grassCommonViewpoints(viewNum , greaterthan , altitude , userid )
+    grassCommonViewpoints(viewNum , greaterthan , altitude , userid , dateStamp)
 
 
 

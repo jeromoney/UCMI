@@ -106,14 +106,14 @@ def grassViewshed(lat , lng, pointNum , userid, outputDir = '/home/justin/Docume
                         max_dist = '50000',
                         overwrite = True)
     
-def grassCommonViewpoints(viewNum , greaterthan , altitude , userid ):
+def grassCommonViewpoints(viewNum , greaterthan , altitude , userid , dateStamp):
     g = connect2grass64(userid)
 
-    filename = 'commonviewshed' + str(viewNum)
+    filename = str(dateStamp)
 
     rasters = g.list_strings(type = 'rast')
     print rasters
-    viewshedRasters = [raster for raster in rasters if 'viewshed' in raster and userid in raster]
+    viewshedRasters = [raster for raster in rasters if 'viewshed' in raster and userid in raster and '_H' not in raster]
     if greaterthan:
         sign = '>'
     else:
@@ -121,13 +121,13 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude , userid ):
 
     # No viewsheds exists, so display area above/below altitude filter
     if viewNum == -1:
-        expression = 'combined = '  +  '(tile@{0}   {1}  {2})'.format(userid, sign , altitude)
+        expression = "'combined = "  +  "(tile@{0}   {1}  {2})'".format(userid, sign , altitude)
     else:
-        expression = 'combined = ' + ' * '.join(viewshedRasters) +  '* (tile@{0}   {1}  {2})'.format(userid, sign , altitude)
+        expression = "'combined = " + ' * '.join(viewshedRasters) +  "* (tile@{0}   {1}  {2})'".format(userid, sign , altitude)
     print "map calc"
     print expression
-    info = g.mapcalc(exp = expression, overwrite = True , verbose=True)        
-    print info
+    #info = g.mapcalc(exp = expression, overwrite = True , verbose=True)   
+    g.parse_command('r.mapcalc' , expression)
     # make 0 cells null
     print "r.null"
     g.parse_command('r.null',

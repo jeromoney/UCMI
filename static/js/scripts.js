@@ -185,7 +185,7 @@ function checkFlag(dateStamp) {
             window.setTimeout(checkFlag, 1000 ,  dateStamp); /* this checks the flag every 1000 milliseconds*/
         } else {
             showProgressBar(false);
-            showImage();
+            showImage(dateStamp);
     }
 }
 
@@ -247,8 +247,8 @@ function radarOverlay(bounds, image, map) {
 }
 
 
-function showImage(){
-    var srcImage = '../viewsheds/commonviewshed' + viewNum + '.png' + "?lastmod=" + Date.now();
+function showImage(dateStamp){
+    var srcImage = '../viewsheds/' + dateStamp + '.png' + "?lastmod=" + Date.now();
     if (typeof overlay != 'undefined'){
         overlay.refreshImage(srcImage);
     }
@@ -257,7 +257,7 @@ function showImage(){
         // the bounds of the image, and a reference to the map.
         // Get the bounds from JSON file
         var data = $.ajax({
-            url: '../viewsheds/commonviewshed' + viewNum + '.json' + "?lastmod=" + Date.now(),
+            url: '../viewsheds/' + dateStamp + '.json' + "?lastmod=" + Date.now(),
             async: false,
             dataType: 'json'}).responseJSON;
 
