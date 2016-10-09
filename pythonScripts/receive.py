@@ -33,7 +33,7 @@ def callback(ch, method, properties, body):
         pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude , id , dateStamp)
 
     print(" [x] Done:  %r" % body)
-    f = file('../static/viewsheds/{0}/{1}.done'.format(id , dateStamp) , 'w')
+    f = file('../static/viewsheds/{0}/done/{1}.done'.format(id , dateStamp) , 'w')
     f.close()
 
 

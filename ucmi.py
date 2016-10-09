@@ -11,7 +11,7 @@ execfile(activate_this_file, dict(__file__=activate_this_file))
 
 
 
-import math , json  , subprocess , md5
+import math , json  , subprocess  , shutil
 
 from flask import Flask , request, send_from_directory , session
 from flask_login import login_user , UserMixin , LoginManager
@@ -32,6 +32,35 @@ app.secret_key = 'xxxxyyyyyzzzzz'
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+
+# deletes contents of static folder on startup
+def init(folder = 'static/viewsheds'):
+    for the_file in os.listdir(folder):
+        file_path = os.path.join(folder, the_file)
+        try:
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path): shutil.rmtree(file_path)
+        except Exception as e:
+            print(e)
+        
+        
+# Sets up folder for user
+@app.route('/initUser', methods=['GET'])
+def initUser():
+    userid = returnID()
+    userfolder = 'static/viewsheds/{0}'.format(userid)
+    if os.path.exists(userfolder):
+        init(userfolder)
+    # viewsheds folder
+    os.makedirs(userfolder + '/viewsheds')
+    #dem folder
+    os.makedirs(userfolder + '/dem')
+    #done folder
+    os.makedirs(userfolder + '/done')
+    return '0'
+    
+    
 def create_app(config_filename = None):
     app = Flask(__name__, static_url_path='')
     app.secret_key = 'xxxxyyyyyzzzzz'
@@ -82,7 +111,7 @@ def index():
 # checks if task is done
 @app.route('/isTaskDone/<dateStamp>' , methods=['GET'])
 def isTaskDone(dateStamp):
-    doneFile = script_dir + '/static/viewsheds/{0}/{1}.done'.format(returnID() , dateStamp)
+    doneFile = script_dir + '/static/viewsheds/{0}/done/{1}.done'.format(returnID() , dateStamp)
     data = json.dumps({'done':os.path.exists(doneFile)})
     return data
 
@@ -94,4 +123,10 @@ def srtmDownload(lat, lng):
 
 if __name__ == "__main__":
     print app.config
+    init()
     app.run(debug=True)
+
+    
+    
+
+

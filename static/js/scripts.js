@@ -146,6 +146,14 @@ function initAutoComplete() {
       
 // When user clicks on map, marker is created and then triggers viewshed calculation
 function returnLocation(event) {
+    // If first location, reset user folder
+    if (viewNum == -1){ 
+        $.ajax({
+            url: "initUser",
+            method: "GET"
+            });
+    }
+    
     var dateStamp = Date.now();
     var latLng = event.latLng;
     var marker = new google.maps.Marker({
@@ -165,6 +173,7 @@ function returnLocation(event) {
         altitude : altitude,
         greaterthan : greaterthan
     };
+
     
     var callback = function (){
        checkFlag(dateStamp );

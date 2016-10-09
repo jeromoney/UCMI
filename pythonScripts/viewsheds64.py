@@ -6,7 +6,7 @@ import subprocess
 import json
 from PIL import Image
 from pyproj import Proj, transform
-viewshedDir = '../static/viewsheds/{0}/'
+viewshedDir = '../static/viewsheds/{0}/{1}'
 
 
 # connects to Grass GIS 6.4
@@ -105,6 +105,21 @@ def grassViewshed(lat , lng, pointNum , userid, outputDir = '/home/justin/Docume
                         coordinate = (x , y) ,
                         max_dist = '50000',
                         overwrite = True)
+    print 'r.out.png'
+    if pointNum == 1:
+        # make a world file
+        pngflags = 'w' # t makes null cells transparent and w outputs world file
+    else:
+        pngflags = ''
+    g.parse_command('r.out.png',
+        flags = pngflags, 
+        input = viewName + '@' + str(userid),
+        output = viewshedDir.format(userid , 'viewsheds/') + viewName + '.png',
+        overwrite = True)
+    if pointNum == 1:
+        wld2Json(viewshedDir.format(userid , 'viewsheds/') , 'viewshed1' , userid )
+                        
+    
     
 def grassCommonViewpoints(viewNum , greaterthan , altitude , userid , dateStamp):
     g = connect2grass64(userid)
