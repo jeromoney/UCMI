@@ -2,9 +2,10 @@
 # -*- mode: python -*-
 # Looks up in database for nearby srtm files.
 
-import os
+import os , shutil
 import psycopg2
 from viewsheds64 import initGrassSetup , grassViewshed , grassCommonViewpoints
+from subprocess import call
 
 
 # commands
@@ -17,6 +18,8 @@ gdal_merge = 'gdal_merge.py -o {tilename} {directory}*.tif;'
 # directories
 geodataDir = '../geodata/cached_dems/'
 user_temp_dir = '../geodata/user_temp/'
+userFolder = '../static/viewsheds/{0}/'
+userDemDir = userFolder + 'dem/'
 
 filename = "N%02dW%03d.hgt.zip"
 tilename = 'tile.tif'
@@ -54,57 +57,71 @@ def lookupSRTM(lat , lon , userid):
     #query
     cur.execute(query.format(lon = lon , lat = lat , SRID = SRID , radius = radius))
     result = cur.fetchall()
-    
-    # if file not downloaded, then downloaded it
-    commandList = ''
-    filenames = []
-    for row in result:
-        intLat = row[0]
-        intLon = row[1]
-        region = row[2]
-        filenames.append(filename % (intLat , -1 *  intLon))
-        # if file has not been downloaded already add to commadn list
-        if filenames[-1] not in os.listdir(geodataDir):
-            commandList += url.format(geodataDir = geodataDir , region = region , filename = filenames[-1])
-    # Execute wget
-    os.system(commandList)
-    
-    # unzip
-    print "unzipping...."
-    commandList = ''
-    for name in filenames:
-        commandList += unzipCmd.format(files = geodataDir + name , unzipDir = unzipDir)
-    os.system(commandList)
-    
-    # convert to 3857
-    print "converting to EPSG:3857...."
-    commandList = ''
-    for name in filenames:
-        commandList += gdalwarp.format(filename = unzipDir + name[:-4] , gdalwarpDir = gdalwarpDir , tifFilename =  name[:-7]+'tif' )
-    os.system(commandList)
-    
-    # merge tiles
-    print "merging tiles"
-    os.system(gdal_merge.format(tilename = gdalwarpDir + tilename , directory = gdalwarpDir))
+    if result == []:
+        print "No maps found"
+        return False
+    else:
+        # if file not downloaded, then downloaded it
+        commandList = ''
+        filenames = []
+        for row in result:
+            intLat = row[0]
+            intLon = row[1]
+            region = row[2]
+            filenames.append(filename % (intLat , -1 *  intLon))
+            # if file has not been downloaded already add to commadn list
+            if filenames[-1] not in os.listdir(geodataDir):
+                commandList += url.format(geodataDir = geodataDir , region = region , filename = filenames[-1])
+        # Execute wget
+        os.system(commandList)
+        
+        # unzip
+        print "unzipping...."
+        commandList = ''
+        for name in filenames:
+            commandList += unzipCmd.format(files = geodataDir + name , unzipDir = unzipDir)
+        os.system(commandList)
+        
+        # convert to 3857
+        print "converting to EPSG:3857...."
+        commandList = ''
+        for name in filenames:
+            commandList += gdalwarp.format(filename = unzipDir + name[:-4] , gdalwarpDir = gdalwarpDir , tifFilename =  name[:-7]+'tif' )
+        os.system(commandList)
+        
+        # merge tiles
+        print "merging tiles"
+        os.system(gdal_merge.format(tilename = userDemDir.format(userid) + tilename , directory = gdalwarpDir))
 
 
-    
-    #deleting files in EPSG4326 folder
-    os.system('rm {0}/*'.format(unzipDir))
-    # load file into grassgis
-    # order is in this way, so final merget tiled is deleted last
-    initGrassSetup(gdalwarpDir , userid)
-    #deleting all files in EPSG3857
-    os.system('rm {0}/*'.format(gdalwarpDir))
+        
+        #deleting files in EPSG4326 folder
+        os.system('rm {0}/*'.format(unzipDir))
+        # load file into grassgis
+        # order is in this way, so final merget tiled is deleted last
+        initGrassSetup(userDemDir.format(userid) , userid)
+        #deleting all files in EPSG3857
+        os.system('rm {0}/*'.format(gdalwarpDir))
+        return True
 
 
 def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altitude , userid , dateStamp):
     if firstMarker:
-        lookupSRTM(lat , lon , userid)
+        result = lookupSRTM(lat , lon , userid)
+        if not result:
+            # map not found break
+            return None
     # run viewshed on point
     grassViewshed(lat ,lon , pointNum , userid)
     # use mapcalc to find common viewpoints
-    #grassCommonViewpoints(viewNum , greaterthan , altitude , userid , dateStamp)
+    
+    inputFiles = userFolder.format(userid) + 'viewsheds/*.png'
+    outputFile = userFolder.format(userid) + 'viewshed.png'
+    if viewNum == 0:
+        shutil.copyfile(userFolder.format(userid) + 'viewsheds/viewshed1.png' , outputFile )
+    else:
+        os.system('composite -compose Multiply {0} {1}'.format(outputFile,inputFiles))
+    os.system('convert {0} -transparent white {0}'.format(outputFile))
 
 
 

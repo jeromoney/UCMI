@@ -7,6 +7,7 @@ import json
 from PIL import Image
 from pyproj import Proj, transform
 viewshedDir = '../static/viewsheds/{0}/{1}'
+grassDataLock = '/home/justin/grassdata64/grass64location/{0}/.gislock'
 
 
 # connects to Grass GIS 6.4
@@ -65,13 +66,15 @@ def highestNeighbor(x , y , g , userid):
 #     >>> expr1 = '"%s" = "%s" * 10' % (output, input)
 # r.cuda.viewshed --overwrite input=n38_w106_1arc_v3@grass64 output=fastviewshed coordinate=1,1
 
-def initGrassSetup(gdalwarpDir, userid,  filename = 'tile.tif'):
+def initGrassSetup(userDemDir , userid,  filename = 'tile.tif'):
+    # remove gis lock
+    os.remove(grassDataLock.format(userid))
     # redudant conections to grass
     g = connect2grass64(userid)
     # r.in.gdal input=/home/justin/Documents/ucmi/geodata/zip/tempEPSG3857/tile.tif output=tile
     g.parse_command(
         'r.in.gdal',
-        input = gdalwarpDir + filename,
+        input = userDemDir + filename,
         output = filename[:-4] ,
         overwrite = True, 
         )
@@ -98,7 +101,7 @@ def grassViewshed(lat , lng, pointNum , userid, outputDir = '/home/justin/Docume
     print rasters
     srtm = [raster for raster in rasters if 'tile' in raster and userid in raster][0]
     viewName = "viewshed{0}".format(pointNum )
-    print 'r.cuda.viewshed' , (x , y)
+    print viewName
     g.parse_command('r.cuda.viewshed',
                         input = srtm ,
                         output= viewName ,
@@ -111,13 +114,14 @@ def grassViewshed(lat , lng, pointNum , userid, outputDir = '/home/justin/Docume
         pngflags = 'w' # t makes null cells transparent and w outputs world file
     else:
         pngflags = ''
+    print viewName
     g.parse_command('r.out.png',
         flags = pngflags, 
         input = viewName + '@' + str(userid),
         output = viewshedDir.format(userid , 'viewsheds/') + viewName + '.png',
         overwrite = True)
     if pointNum == 1:
-        wld2Json(viewshedDir.format(userid , 'viewsheds/') , 'viewshed1' , userid )
+        wld2Json(viewshedDir.format(userid , 'viewsheds/') , 'viewshed1' , userid)
                         
     
     

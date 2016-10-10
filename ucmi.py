@@ -91,6 +91,29 @@ def pythonScript():
     sendMsg(formStr)
     return '0'
 
+# returns json item with location info
+@app.route('/location', methods=['GET'])
+def location():
+    locationFile = 'viewshed1.json'
+    locationDir = 'static/viewsheds/{0}/viewsheds/'.format(returnID())
+    if os.path.isfile(locationDir+locationFile):
+        return send_from_directory(locationDir, locationFile)
+    else:
+        return 'No location available'
+
+# viewshed image
+@app.route('/image/<viewNum>')
+def image(viewNum):
+    viewNum = int(viewNum)
+    itemDir = 'static/viewsheds/{0}/'.format(returnID())
+    locationFile = 'viewshed.png'
+    if not os.path.isfile(itemDir+locationFile):
+        return 'No image available'
+    else:
+        return send_from_directory(itemDir, locationFile)
+
+
+
 # user specific itmes
 @app.route('/viewsheds/<filename>')
 def serve_usrstatic(filename):
