@@ -53,11 +53,8 @@ html, body {
       .floating-panel {
         position: absolute;
         top: 10px;
-        left: 30%;
+        left: 60%;
+        
       }
-      .floating-panel-alt {
-        position: absolute;
-        top: 100px;
-        left: 5%;
-      }
+     
 

@@ -2,17 +2,16 @@
 activate_this_file = "../venv/bin/activate_this.py"
 execfile(activate_this_file, dict(__file__=activate_this_file))
 
-from viewsheds64 import grassCommonViewpoints
-from srtmsql64 import pointQuery
-
+from viewsheds import grassCommonViewpoints
+from srtmsql import pointQuery , makeTransparent
 
 import pika , json
 
+# Connecting to RabbitMQ server
 connection = pika.BlockingConnection(pika.ConnectionParameters(
         host='localhost'))
 channel = connection.channel()
 channel.queue_delete(queue='task_queue')
-
 channel.queue_declare(queue='task_queue')
 
 def callback(ch, method, properties, body):
@@ -25,6 +24,7 @@ def callback(ch, method, properties, body):
     dateStamp = int(form['dateStamp'])
     if fnction == 'grassCommonViewpoints':
         grassCommonViewpoints(viewNum , greaterthan , altitude , id , dateStamp)
+        makeTransparent(id)
     elif fnction == 'pointQuery':
         lat = form['lat']
         lng = form['lng']
@@ -33,7 +33,7 @@ def callback(ch, method, properties, body):
         pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude , id , dateStamp)
 
     print(" [x] Done:  %r" % body)
-    f = file('../static/viewsheds/{0}/{1}.done'.format(id , dateStamp) , 'w')
+    f = file('../static/viewsheds/{0}/done/{1}.done'.format(id , dateStamp) , 'w')
     f.close()
 
 
