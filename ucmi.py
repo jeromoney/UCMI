@@ -31,6 +31,8 @@ app = Flask(__name__, static_url_path='')
 app.secret_key = 'xxxxyyyyyzzzzz'
 login_manager = LoginManager()
 login_manager.init_app(app)
+dir_path = os.path.dirname(os.path.realpath(__file__))
+os.chdir(dir_path)
 
 
 # deletes contents of static folder on startup
@@ -49,15 +51,21 @@ def init(folder = 'static/viewsheds'):
 @app.route('/initUser', methods=['GET'])
 def initUser():
     userid = returnID()
-    userfolder = 'static/viewsheds/{0}'.format(userid)
-    if os.path.exists(userfolder):
-        init(userfolder)
-    # viewsheds folder
-    os.makedirs(userfolder + '/viewsheds')
+    userfolder = '/static/viewsheds/{0}'.format(userid)
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    #if os.path.exists(userfolder):
+        #print 'Folder exists, deleting contents'
+        #init(dir_path + userfolder)
+        #shutil.rmtree( dir_path + userfolder)
+        #assert(not os.path.exists(userfolder))
     #dem folder
-    os.makedirs(userfolder + '/dem')
-    #done folder
-    os.makedirs(userfolder + '/done')
+    assert(os.path.exists(dir_path + '/static/viewsheds'))
+    if not os.path.exists(dir_path + userfolder):
+        os.mkdir(dir_path + userfolder)
+    if not os.path.exists(dir_path + userfolder + '/dem'):
+        os.mkdir(dir_path + userfolder + '/dem')
+    if not os.path.exists(dir_path +  userfolder + '/done'):
+        os.mkdir(dir_path +  userfolder + '/done')
     return '0'
     
     
@@ -94,8 +102,8 @@ def pythonScript():
 # returns json item with location info
 @app.route('/location', methods=['GET'])
 def location():
-    locationFile = 'viewshed1.json'
-    locationDir = 'static/viewsheds/{0}/viewsheds/'.format(returnID())
+    locationFile = 'combined.json'
+    locationDir = 'static/viewsheds/{0}/'.format(returnID())
     if os.path.isfile(locationDir+locationFile):
         return send_from_directory(locationDir, locationFile)
     else:
@@ -107,6 +115,7 @@ def image(viewNum):
     viewNum = int(viewNum)
     itemDir = 'static/viewsheds/{0}/'.format(returnID())
     locationFile = 'viewshed.png'
+    print itemDir+locationFile
     if not os.path.isfile(itemDir+locationFile):
         return 'No image available'
     else:
@@ -147,7 +156,7 @@ def srtmDownload(lat, lng):
 if __name__ == "__main__":
     print app.config
     init()
-    app.run(debug=True)
+    app.run(debug=False)
 
     
     

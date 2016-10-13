@@ -2,16 +2,16 @@
 # -*- mode: python -*-
 # Looks up in database for nearby srtm files.
 
-import os , shutil
-import psycopg2
-from viewsheds64 import initGrassSetup , grassViewshed , grassCommonViewpoints
+import os , shutil , psycopg2
+from viewsheds import initGrassSetup , grassViewshed , grassCommonViewpoints
 from subprocess import call
+from pyproj import Proj, transform
 
 
 # commands
 unzipCmd = 'unzip -n -d {unzipDir} {files};'
 url = "wget -P {geodataDir} https://dds.cr.usgs.gov/srtm/version2_1/SRTM1/Region_0{region}/{filename};"
-gdalwarp = 'gdalwarp -t_srs EPSG:3857 -r cubic {filename} {gdalwarpDir}/{tifFilename};'
+gdalwarp = 'gdalwarp -overwrite -t_srs EPSG:3857 -r cubic {filename} {gdalwarpDir}/{tifFilename};'
 gdal_merge = 'gdal_merge.py -o {tilename} {directory}*.tif;'
 
 
@@ -92,14 +92,27 @@ def lookupSRTM(lat , lon , userid):
         # merge tiles
         print "merging tiles"
         os.system(gdal_merge.format(tilename = userDemDir.format(userid) + tilename , directory = gdalwarpDir))
-
-
+        
+        print "Crop tiles to smaller area"
+        # -te xmin ymin xmax ymax
+        # The extent should be 25 km from initial point
+        # Convert from 4326 to 3857
+        padding = 25000
+        inProj = Proj(init='epsg:4326')
+        outProj = Proj(init='epsg:3857')
+        x , y = transform(inProj,outProj, lon , lat)
+        ymax = y + padding
+        ymin = y - padding
+        xmax = x + padding
+        xmin = x - padding
+        extent = "- te {xmin} {ymin} {xmax} {ymax}".format(ymax = ymax, ymin = ymin, xmax = xmax , xmin = xmin)
+        cmd = 'gdalwarp -overwrite -t_srs EPSG:3857 -te {0} {1} {1}'.format(extent, userDemDir.format(userid) + tilename)
         
         #deleting files in EPSG4326 folder
         os.system('rm {0}/*'.format(unzipDir))
         # load file into grassgis
-        # order is in this way, so final merget tiled is deleted last
-        initGrassSetup(userDemDir.format(userid) , userid)
+        # order is in this way, so final merged tiled is deleted last
+        initGrassSetup(userDemDir.format(userid) , userid , lat , lon)
         #deleting all files in EPSG3857
         os.system('rm {0}/*'.format(gdalwarpDir))
         return True
@@ -114,19 +127,23 @@ def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altit
     # run viewshed on point
     grassViewshed(lat ,lon , pointNum , userid)
     # use mapcalc to find common viewpoints
-    
-    inputFiles = userFolder.format(userid) + 'viewsheds/*.png'
+    grassCommonViewpoints(viewNum , greaterthan , altitude , userid , dateStamp)
+    makeTransparent(userid)
+
+# makes the image transparent
+def makeTransparent(userid):
+    inputFile = userFolder.format(userid) + 'combined.png'
     outputFile = userFolder.format(userid) + 'viewshed.png'
-    if viewNum == 0:
-        shutil.copyfile(userFolder.format(userid) + 'viewsheds/viewshed1.png' , outputFile )
-    else:
-        os.system('composite -compose Multiply {0} {1}'.format(outputFile,inputFiles))
-    os.system('convert {0} -transparent white {0}'.format(outputFile))
+    # Make transparent
+    #convert viewshed1.png -fill red -opaque black -alpha copy -channel alpha -negate -channel alpha -evaluate multiply 0.5 output.png
+    cmd = 'convert {0} -fill red -opaque black -alpha copy -channel alpha -negate -channel alpha -evaluate multiply 0.5  {1}'.format(inputFile,outputFile)
+    print cmd
+    os.system(cmd)
 
 
 
 def main(args):
-    lookupSRTM(39 , -110)
+    lookupSRTM(36.95430926,-84.22389407, "343434")
     return 0
 
 if __name__ == '__main__':

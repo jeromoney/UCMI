@@ -402,8 +402,7 @@ function initAutoComplete() {
             };
             
             });
-            
-
+        
 }
         
 
@@ -419,7 +418,6 @@ function returnLocation(event) {
         alert("Points are only allowed within the continental United States");
         return;
     }
-    
     // Check to make sure user is not clicking too far
     if (viewNum > -1){
         var position0 = viewMarkers[0].position;
@@ -439,9 +437,7 @@ function returnLocation(event) {
             });
     }
     
-    
-    
-    
+
     var dateStamp = Date.now();
     var marker = new google.maps.Marker({
         position: latLng,
@@ -673,12 +669,16 @@ function altitudeFilter(){
 // Need to add form verification
 
 function altitudeRefresh(){
-    viewNum ++;
+    if (viewNum == -1){
+        // User has not selected a point yet, so do nothing
+        alert("Select a viewpoint first.");
+        return;
+    }
     var greaterthan = $("#altFilter").val();
     var altitude = getAltitude();
     dateStamp = Date.now();
     var callback = function (){
-        checkFlag(dateStamp );
+        checkFlag(dateStamp);
         };
     var parameters = {
         dateStamp : dateStamp,
