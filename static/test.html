@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>The UCMI System</title>
+
+    
+    <!-- SCRIPTS -->
+        <!-- http://jquery.com/ -->
+    <script src="../js/jquery-1.11.3.min.js"></script>
+        <!-- SCRIPTS ?signed_in=true -->
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBtND1JHGeki_teUwCqPIR68_iwrcfOjm4&libraries=places"  defer></script>
+    <script src="js/bootstrap-switch.min.js"></script>
+    <!-- STYLES -->
+        <link rel="stylesheet" type="text/css" href="../css/style.css">
+
+    <!-- http://getbootstrap.com/ -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="css/bootstrap-switch.min.css" rel="stylesheet">
+
+  </head>
+  
+  <body> 
+  
+        <div class="row">
+            <input class = "col-6" type="checkbox" id ="showView"  name="showView" state="False" data-on-text="Show View" data-off-text="Hide View" data-off-color="warning">
+            <input class = "col-6" type="checkbox"  name="editCheckbox" state="False" data-on-text="Unlocked" data-off-text="Locked" data-off-color="warning">
+        </div>
+        <div class="row" >
+           <div class="input-group">
+                <div class="input-group-btn">
+            <!-- Buttons -->
+                    <button id="altRefresh" type="button" class="btn btn-default">Go!</button>
+                    <button id="altFilter" value="greaterthan" type="button" class="btn btn-default" >></button>
+                </div>
+                <input id="altitude" type="text" class="form-control" aria-label="..." placeholder="Altitude filter">
+                <span class="input-group-addon">ft</span>
+            </div>
+            <div  class="row progress">
+                <div id="progress" class="progress-bar progress-bar-striped active hidden width:10%" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                    <span class="sr-only">100% Complete</span>
+                </div>
+            </div>
+        </div>
+
+    
+    
+    <script src="../js/scripts.js" defer></script></script>
+    </body>
+</html>

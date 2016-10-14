@@ -715,7 +715,7 @@ function getAltitude(){
         // all is good so remove alert class
         $("#altitude").removeClass('alert alert-danger');
     }
-    
+
     // conver feet to meters
     return altitude * 0.3048;
 }

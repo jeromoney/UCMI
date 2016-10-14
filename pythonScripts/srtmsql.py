@@ -22,7 +22,7 @@ userFolder = '../static/viewsheds/{0}/'
 userDemDir = userFolder + 'dem/'
 
 filename = "N%02dW%03d.hgt.zip"
-tilename = 'tile.tif'
+tilename = 'xtile.tif'
 
 radius = .7 #degrees (circle in which to look for other srtms)
 SRID = 4326
@@ -88,7 +88,8 @@ def lookupSRTM(lat , lon , userid):
         for name in filenames:
             commandList += gdalwarp.format(filename = unzipDir + name[:-4] , gdalwarpDir = gdalwarpDir , tifFilename =  name[:-7]+'tif' )
         os.system(commandList)
-        
+        # delete tile first
+        os.system("rm -f " + userDemDir.format(userid) + tilename)
         # merge tiles
         print "merging tiles"
         os.system(gdal_merge.format(tilename = userDemDir.format(userid) + tilename , directory = gdalwarpDir))
@@ -105,8 +106,11 @@ def lookupSRTM(lat , lon , userid):
         ymin = y - padding
         xmax = x + padding
         xmin = x - padding
-        extent = "- te {xmin} {ymin} {xmax} {ymax}".format(ymax = ymax, ymin = ymin, xmax = xmax , xmin = xmin)
-        cmd = 'gdalwarp -overwrite -t_srs EPSG:3857 -te {0} {1} {1}'.format(extent, userDemDir.format(userid) + tilename)
+        extent = "{xmin} {ymin} {xmax} {ymax}".format(ymax = ymax, ymin = ymin, xmax = xmax , xmin = xmin)
+        cmd = 'gdalwarp -overwrite -t_srs EPSG:3857 -te {0} {1} {2}'.format(extent,userDemDir.format(userid) + tilename, userDemDir.format(userid) + tilename[1:])
+        print cmd
+
+        os.system(cmd)
         
         #deleting files in EPSG4326 folder
         os.system('rm {0}/*'.format(unzipDir))

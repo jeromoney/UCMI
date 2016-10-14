@@ -82,10 +82,12 @@ def connect2grass(userid):
 # Finds the highest neighbor. Currently using r.what but that might be inneficient
 def highestNeighbor(x , y , gscript , userid):
     # print out region for debugging purposes
-    print "Finging points higher at " , x ,y
+    print "Finding points higher at " , x ,y
     cell_res = 35.18111132 # meters. hard coded for now
     # r.what --v -f -n input=tile@grass64 east_north=-11796467.922180,4637784.666290
     maxElevation = -1000
+    max_x = x
+    max_y = y
     for i in range(- int(500 / cell_res) , int(500 / cell_res)):
         for j in range(- int(500 / cell_res) , int(500 / cell_res)):
             x_coor = x + i * cell_res
