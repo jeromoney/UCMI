@@ -52,9 +52,9 @@ html, body {
       }
       .floating-panel {
         position: absolute;
-        top: 10px;
-        left: 60%;
-        
+        top: 13px;
+        left:50%;
+        padding-right: 100px;
       }
      
 

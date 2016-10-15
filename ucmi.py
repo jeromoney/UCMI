@@ -53,7 +53,8 @@ def initUser():
     userid = returnID()
     userfolder = '/static/viewsheds/{0}'.format(userid)
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    #if os.path.exists(userfolder):
+    if os.path.exists(userfolder):
+        init(dir_path + userfolder)
         #print 'Folder exists, deleting contents'
         #init(dir_path + userfolder)
         #shutil.rmtree( dir_path + userfolder)

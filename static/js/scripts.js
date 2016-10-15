@@ -78,9 +78,6 @@ function initMap() {
       // parameter when you first load the API. For example:
       // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"> 
 function initAutoComplete() {
-
-        
-
         // Create the search box and link it to the UI element.
         var input = document.getElementById('pac-input');
         var searchBox = new google.maps.places.SearchBox(input);
@@ -715,7 +712,7 @@ function getAltitude(){
         // all is good so remove alert class
         $("#altitude").removeClass('alert alert-danger');
     }
-    
+
     // conver feet to meters
     return altitude * 0.3048;
 }
