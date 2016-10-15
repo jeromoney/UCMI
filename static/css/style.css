@@ -52,15 +52,10 @@ html, body {
       }
       .floating-panel {
         position: absolute;
-<<<<<<< HEAD
+
         top: 13px;
         left:50%;
         padding-right: 100px;
-=======
-        top: 10px;
-        padding-right: 100px;
-        
->>>>>>> ff8c87f38666bed75731ba901b21be99e451b484
       }
      
 
