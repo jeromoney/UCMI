@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 '''
 ucmi.py
-Configures flask server and routes web requests to appropiate python scripts.
+Configures flask server and routes web requests to appropiate python
+ scripts. Scripts aren't called directly, but instead sent as a message
+ to a RabbitMQ server.
 '''
 
 # Importing settings
@@ -64,12 +66,15 @@ def create_app(config_filename = None):
 def returnID():
     return str(request.remote_addr)
 
+# User has requested area to be filtered by elevation alone
 @app.route('/elevationfilter', methods=['GET', 'POST'])
 def elevationfilter():
     formStr = json.dumps(['grassCommonViewpoints'] + [request.form] + [returnID()])
     sendMsg(formStr)
     return '0'
 
+# Main call. User has submitted a viewshed and possibly elevation filter
+# request.
 @app.route('/python', methods=['GET', 'POST'])
 def pythonScript():
     #if this is the first request, set up user folder

@@ -1,26 +1,33 @@
 #!/usr/bin/env python
-import imp , os, sys , json , subprocess , shutil
+''' Processes GIS data through GRASS GIS / python interface.'''
+
+import imp , os, sys , json , subprocess , shutil , configparser , inspect
 from PIL import Image
 from pyproj import Proj, transform
-viewshedDir = '../static/viewsheds/{0}/'
-grassDataLock = '/home/justin/grassdata64/grass64location/{0}/.gislock'
+
+config = configparser.ConfigParser()
+config.read('../config.ini')
+this_file = os.path.split(inspect.getfile(inspect.currentframe()))[-1]
+options = config._sections[this_file]
+options_ucmi = config._sections['ucmi.py']
+
+script_dir = os.path.dirname(os.path.abspath(this_file)) 
+viewshedDir = '/'.join(['..' , options_ucmi['viewsheddir'] , '{0}']) + '/'
 
 
 # connects to Grass GIS 7.0
 def connect2grass(userid):       
      # path to the GRASS GIS launch script
     # Linux 
-    grass7bin = 'grass70'
+    grass7bin = options['grass7bin']
 
     # DATA
     # define GRASS DATABASE
     # add your path to grassdata (GRASS GIS database) directory
     gisdb = os.path.join(os.path.expanduser("~"), "grassdata")
-    # the following path is the default path on MS Windows
-    # gisdb = os.path.join(os.path.expanduser("~"), "Documents/grassdata")
      
     # specify (existing) location and mapset
-    location = "ucmi"
+    location = options['location']
      
     # query GRASS 7 itself for its GISBASE
     startcmd = [grass7bin, '--config', 'path']
@@ -83,16 +90,18 @@ def connect2grass(userid):
 def highestNeighbor(x , y , gscript , userid):
     # print out region for debugging purposes
     print "Finding points higher at " , x ,y
-    cell_res = 35.18111132 # meters. hard coded for now
+    cell_res = config.getfloat(this_file, "cell_res") # meters. hard coded for now
     # r.what --v -f -n input=tile@grass64 east_north=-11796467.922180,4637784.666290
     maxElevation = -1000
     max_x = x
     max_y = y
-    for i in range(- int(500 / cell_res) , int(500 / cell_res)):
-        for j in range(- int(500 / cell_res) , int(500 / cell_res)):
+    bndry = config.getint(this_file, "high_point_bndry") # (meters)
+    # size of square to search for the peak value
+    for i in range(- int(bndry / cell_res) , int(bndry / cell_res)):
+        for j in range(- int(bndry / cell_res) , int(bndry / cell_res)):
             x_coor = x + i * cell_res
             y_coor = y + j * cell_res
-            info = gscript.raster_what('tile@' + str(userid), [[x_coor ,y_coor ]])
+            info = gscript.raster_what(options['demname'] + '@' + str(userid), [[x_coor ,y_coor ]])
             info = info[0]
             info = info[info.keys()[0]]
             elevation = int(info['value'])
@@ -102,13 +111,8 @@ def highestNeighbor(x , y , gscript , userid):
                 max_y = y_coor
     return max_x , max_y
 
-# def mapcalc(exp, quiet = False, verbose = False, overwrite = False, **kwargs):
-#     >>> expr1 = '"%s" = "%s" * 10' % (output, input)
-# r.cuda.viewshed --overwrite input=n38_w106_1arc_v3@grass64 output=fastviewshed coordinate=1,1
-
-def initGrassSetup(userDemDir , userid,  lat , lon , filename = 'tile.tif'):
-    # remove gis lock
-    #os.remove(grassDataLock.format(userid))
+# Sets up conenction to GRASS GIS
+def initGrassSetup(userDemDir , userid,  lat , lon , filename = options['demname'] + '.tif'):
     # redudant conections to grass
     r , g , gscript = connect2grass(userid)
     # r.in.gdal input=/home/justin/Documents/ucmi/geodata/zip/tempEPSG3857/tile.tif output=tile
@@ -119,35 +123,17 @@ def initGrassSetup(userDemDir , userid,  lat , lon , filename = 'tile.tif'):
         overwrite = True, 
         )
     
-    # TODO: Make region smaller. The region should be 50000 meters from the first point. So, 25000 in each direction
-    # This code just seemed to slow down machine
-    #Convert from 4326 to 3857
-    #padding = 25000
-    #inProj = Proj(init='epsg:4326')
-    #outProj = Proj(init='epsg:3857')
-    #x , y = transform(inProj,outProj, lon , lat)
-
-    #flags = 'a' # 'a' aligns region to resolution
-    #northern_bndry = y + padding
-    #southern_bndry = y - padding
-    #eastern_bndry = x + padding
-    #western_bndry = x - padding
-    #g.region(
-        #flags = flags,
-        #n = northern_bndry,
-        #s = southern_bndry,
-        #e = eastern_bndry,
-        #w = western_bndry
-    #)
     g.region(raster = filename[:-4] + '@' + str(userid))
     g.region(flags='p')
+    
     # remove old viewsheds
     g.remove(
         flags ='fb',
         type='raster',
         pattern='viewshed*')                                     
 
-def grassViewshed(lat , lng, pointNum , userid, outputDir = '/home/justin/Documents/ucmi/UCMI/static/viewsheds/'):
+# Performs viewshed calculation and then boolean adds resulting viewsheds
+def grassViewshed(lat , lng, pointNum , userid, outputDir = '/'.join([script_dir , '..' , viewshedDir]) ):
     # redudant conections to grass
     r , g , gscript = connect2grass(userid)
     
@@ -158,27 +144,27 @@ def grassViewshed(lat , lng, pointNum , userid, outputDir = '/home/justin/Docume
     print "found higher neighbor at" , x, y
     rasters = gscript.list_strings(type = 'rast')
     print rasters
-    srtm = [raster for raster in rasters if 'tile' in raster and userid in raster][0]
-    viewName = "viewshed{0}".format(pointNum )
+    srtm = [raster for raster in rasters if options['demname'] in raster and userid in raster][0]
+    viewName = options['viewshedname'] + str(pointNum)
     print viewName
     r.viewshed(
         flags = 'b', #binary visible/invisible viewshed
         input = srtm ,
         output= viewName ,
         coordinates = (x , y) ,
-        max_distance = '50000',
+        max_distance = -1,
         overwrite = True)
     
-
+    combinedName = options['combinedname']
     if pointNum == 1:
         print "Overwriting existing map with copy"
         # copy existing viewshed to new combined map
-        expression = 'combined = {1}@{0}'.format(userid , viewName)
+        expression = combinedName + ' = {1}@{0}'.format(userid , viewName)
         print "r.mapcalc" , expression
         gscript.raster.mapcalc(expression, overwrite = True)
     else:
         # screen existing viewshed with new viewshed
-        expression = 'combined = combined@{0} * {1}@{0}'.format(userid , viewName)
+        expression = '{0} = {0}@{1} * {2}@{1}'.format(combinedName , userid , viewName)
         print "r.mapcalc" , expression
         gscript.raster.mapcalc(expression, overwrite = True)
 
@@ -186,6 +172,8 @@ def grassViewshed(lat , lng, pointNum , userid, outputDir = '/home/justin/Docume
 def grassCommonViewpoints(viewNum , greaterthan , altitude , userid , dateStamp):
     r , g , gscript = connect2grass(userid)
     filename = str(dateStamp)
+    combinedName = options['combinedname']
+
     # checking if user has asked for an elevation filter
     elevationFlag = (greaterthan and altitude > 3) or (not greaterthan and altitude < 29000)
     if not elevationFlag:
@@ -196,24 +184,24 @@ def grassCommonViewpoints(viewNum , greaterthan , altitude , userid , dateStamp)
             sign = '>'
         else:
             sign = '<'
-        expression = "combined = combined@{0} * (tile@{0} {1} {2})".format(userid , sign , altitude)
+        expression = "{0} = {0}@{1} * ({2}@{1} {3} {4})".format(combinedName , userid , options['demname'] , sign , altitude)
         print "map calc"
         print expression
         #info = g.mapcalc(exp = expression, overwrite = True , verbose=True)   
         gscript.raster.mapcalc(expression, overwrite = True)
         
     # make 0 cells null
-    r.null(map='combined@{0}'.format(userid) , setnull = 0)
+    r.null(map= combinedName + '@' + str(userid) , setnull = 0)
     #r.out.png -t -w --overwrite input=my_viewshed@ucmiGeoData output=/home/justin/Documents/ucmi/geodata/viewsheds/viewshed.png
     #not sure why I can't call as r.out.png(...)
     print "r.out"    
     flags = ''
     if viewNum == 0:
         flags ='w' # makes null cells transparent and w outputs world file
-    output =  viewshedDir.format(userid) + 'combined.png'
+    output =  viewshedDir.format(userid) + combinedName + '.png'
     gscript.run_command('r.out.png',
         flags = flags, 
-        input = 'combined@' + str(userid),
+        input = combinedName + '@' + str(userid),
         output = output,
         overwrite = True)
     if viewNum == 0:     
