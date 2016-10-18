@@ -1,11 +1,22 @@
 #!/usr/bin/python
 # -*- mode: python -*-
-# Looks up in database for nearby srtm files.
+'''
+Looks up in database for nearby srtm files. Downloads if necessary and 
+then processes them with GDAL
+'''
 
-import os , shutil , psycopg2
+import os , shutil , psycopg2 , configparser , inspect
 from viewsheds import initGrassSetup , grassViewshed , grassCommonViewpoints
 from subprocess import call
 from pyproj import Proj, transform
+
+config = configparser.ConfigParser()
+config.read('../config.ini')
+this_file = os.path.split(inspect.getfile(inspect.currentframe()))[-1]
+options = config._sections[this_file]
+options_ucmi = config._sections['ucmi.py']
+options_viewsheds = config._sections['viewsheds.py']
+
 
 
 # commands
@@ -16,21 +27,20 @@ gdal_merge = 'gdal_merge.py -o {tilename} {directory}*.tif;'
 
 
 # directories
-geodataDir = '../geodata/cached_dems/'
-user_temp_dir = '../geodata/user_temp/'
-userFolder = '../static/viewsheds/{0}/'
-userDemDir = userFolder + 'dem/'
+geodataDir = options['geodatadir']
+user_temp_dir = options['user_temp_dir']
+userFolder = '/'.join(['..' , options_ucmi['viewsheddir'] , '{0}']) + '/'
+userDemDir = userFolder + options_ucmi['demdir'] + '/'
 
 filename = "N%02dW%03d.hgt.zip"
-tilename = 'xtile.tif'
+tilename = 'x{0}.tif'.format(options_viewsheds['demname'])
 
-radius = .7 #degrees (circle in which to look for other srtms)
-SRID = 4326
+radius = config.getfloat(this_file, "radius") #degrees (circle in which to look for other srtms)
 query = """
         SELECT lat , lon , region FROM srtm
                 WHERE 
         ST_DWithin(geom,
-        ST_SetSRID(ST_MakePoint({lon},{lat}) , {SRID}),{radius});
+        ST_SetSRID(ST_MakePoint({lon},{lat}) , 4326),{radius});
         """
 
 
@@ -43,19 +53,19 @@ def lookupSRTM(lat , lon , userid):
             os.mkdir(path)
     # set up directories for user
     makeDir(user_temp_dir + userid)
-    unzipDir = user_temp_dir + userid + '/tempEPSG4326/'
-    gdalwarpDir = user_temp_dir + userid + '/tempEPSG3857/'
+    unzipDir = '/'.join([user_temp_dir , userid , options['tempepsg4326']]) + '/'
+    gdalwarpDir = '/'.join([user_temp_dir , userid , options['tempepsg3857']]) + '/'
     makeDir(gdalwarpDir)
     makeDir(unzipDir)
 
     # connect to database"dbname=test user=postgres password=secret"
-    conn = psycopg2.connect("dbname=gisdb user=justin password=bobo24")
+    conn = psycopg2.connect("dbname={0} user={1} password={2}".format(options['dbname'] , options['user'] , options['password']))
     
     # Open a cursor to perform database operations
     cur = conn.cursor()
         
     #query
-    cur.execute(query.format(lon = lon , lat = lat , SRID = SRID , radius = radius))
+    cur.execute(query.format(lon = lon , lat = lat , radius = radius))
     result = cur.fetchall()
     if result == []:
         print "No maps found"
@@ -136,8 +146,8 @@ def pointQuery(lat , lon , pointNum, firstMarker , viewNum , greaterthan , altit
 
 # makes the image transparent
 def makeTransparent(userid):
-    inputFile = userFolder.format(userid) + 'combined.png'
-    outputFile = userFolder.format(userid) + 'viewshed.png'
+    inputFile = userFolder.format(userid) + options_viewsheds['combinedname'] + '.png'
+    outputFile = userFolder.format(userid) + options_ucmi['locationpng']
     # Make transparent
     #convert viewshed1.png -fill red -opaque black -alpha copy -channel alpha -negate -channel alpha -evaluate multiply 0.5 output.png
     cmd = 'convert {0} -fill red -opaque black -alpha copy -channel alpha -negate -channel alpha -evaluate multiply 0.5  {1}'.format(inputFile,outputFile)

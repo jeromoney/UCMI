@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+'''
+RabbitMQ receiver. Jobs are retreived as messages and converted into
+python calls.
+'''
 activate_this_file = "../venv/bin/activate_this.py"
 execfile(activate_this_file, dict(__file__=activate_this_file))
 
