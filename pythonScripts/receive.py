@@ -31,9 +31,10 @@ def callback(ch, method, properties, body):
         pointNum = int(form['size'])
         firstMarker = (pointNum == 1)
         pointQuery(lat , lng , pointNum, firstMarker , viewNum , greaterthan , altitude , id , dateStamp)
-
+    
+    # Process is completed, create empty done file
     print(" [x] Done:  %r" % body)
-    f = file('../static/viewsheds/{0}/done/{1}.done'.format(id , dateStamp) , 'w')
+    f = file('../static/viewsheds/{0}/{1}.done'.format(id , dateStamp) , 'w')
     f.close()
 
 

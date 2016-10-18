@@ -1,42 +1,35 @@
-# doing execfile() on this file will alter the current interpreter's
-# environment so you can import libraries in the virtualenv
 #!/usr/bin/env python
+'''
+ucmi.py
+Configures flask server and routes web requests to appropiate python scripts.
+'''
 
-import inspect , os
-script_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))) # script directory
+# Importing settings
+import configparser , inspect , os
+config = configparser.ConfigParser()
+config.read('config.ini')
+this_file = inspect.getfile(inspect.currentframe())
+options = config._sections[this_file]
 
-activate_this_file = script_dir+ "/venv/bin/activate_this.py"
-
+# Setting up virtual python environment
+# the current script directory 
+script_dir = os.path.dirname(os.path.abspath(this_file)) 
+activate_this_file = script_dir + options['venv']
 execfile(activate_this_file, dict(__file__=activate_this_file))
 
-
-
-import math , json  , subprocess  , shutil
+import math , json , subprocess , shutil
 
 from flask import Flask , request, send_from_directory , session
-from flask_login import login_user , UserMixin , LoginManager
 from pythonScripts.send import sendMsg 
 
-
-class User(UserMixin):
-    def __init__(self):
-        self.id = ''
-    @classmethod
-    def get(cls,id):
-        return cls.user_database.get(id)
-
-        
         
 app = Flask(__name__, static_url_path='')
-app.secret_key = 'xxxxyyyyyzzzzz'
-login_manager = LoginManager()
-login_manager.init_app(app)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dir_path)
 
 
 # deletes contents of static folder on startup
-def init(folder = 'static/viewsheds'):
+def init(folder = options['viewsheddir']):
     for the_file in os.listdir(folder):
         file_path = os.path.join(folder, the_file)
         try:
@@ -47,55 +40,39 @@ def init(folder = 'static/viewsheds'):
             print(e)
         
         
-# Sets up folder for user
+# sets up personal folder for user
 @app.route('/initUser', methods=['GET'])
 def initUser():
     userid = returnID()
-    userfolder = '/static/viewsheds/{0}'.format(userid)
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    userfolder = script_dir + '/' + options['viewsheddir'] + userid
+    print userfolder
     if os.path.exists(userfolder):
-        init(dir_path + userfolder)
-        #print 'Folder exists, deleting contents'
-        #init(dir_path + userfolder)
-        #shutil.rmtree( dir_path + userfolder)
-        #assert(not os.path.exists(userfolder))
-    #dem folder
-    assert(os.path.exists(dir_path + '/static/viewsheds'))
-    if not os.path.exists(dir_path + userfolder):
-        os.mkdir(dir_path + userfolder)
-    if not os.path.exists(dir_path + userfolder + '/dem'):
-        os.mkdir(dir_path + userfolder + '/dem')
-    if not os.path.exists(dir_path +  userfolder + '/done'):
-        os.mkdir(dir_path +  userfolder + '/done')
+        init(script_dir + userfolder)
+    demFolder = userfolder + '/' + options['demdir']
+    print demFolder
+    if not os.path.exists(demFolder):
+        os.makedirs(demFolder)
     return '0'
     
     
 def create_app(config_filename = None):
     app = Flask(__name__, static_url_path='')
-    app.secret_key = 'xxxxyyyyyzzzzz'
     login_manager = LoginManager()
     login_manager.init_app(app)
     return app
 
+# IP is used as user id. This could be done better
 def returnID():
     return str(request.remote_addr)
 
-
-def deleteDoneFile(viewNum):
-    doneFile = 'static/viewsheds/{0}/commonviewshed{1}.done'.format(returnID() , viewNum)
-    if os.path.exists(doneFile):
-        os.remove(doneFile)
-
 @app.route('/elevationfilter', methods=['GET', 'POST'])
 def elevationfilter():
-    deleteDoneFile(request.form['viewNum'])
     formStr = json.dumps(['grassCommonViewpoints'] + [request.form] + [returnID()])
     sendMsg(formStr)
     return '0'
 
 @app.route('/python', methods=['GET', 'POST'])
 def pythonScript():
-    deleteDoneFile(request.form['viewNum'])
     formStr = json.dumps(['pointQuery'] + [request.form] + [returnID()])
     sendMsg(formStr)
     return '0'
@@ -103,30 +80,31 @@ def pythonScript():
 # returns json item with location info
 @app.route('/location', methods=['GET'])
 def location():
-    locationFile = 'combined.json'
-    locationDir = 'static/viewsheds/{0}/'.format(returnID())
+    locationFile = options['locationjson']
+    locationDir = options['viewsheddir'] + returnID() + '/'
     if os.path.isfile(locationDir+locationFile):
         return send_from_directory(locationDir, locationFile)
     else:
         return 'No location available'
 
-# viewshed image
-@app.route('/image/<viewNum>')
-def image(viewNum):
-    viewNum = int(viewNum)
-    itemDir = 'static/viewsheds/{0}/'.format(returnID())
-    locationFile = 'viewshed.png'
-    print itemDir+locationFile
-    if not os.path.isfile(itemDir+locationFile):
+# returns the viewshed image
+@app.route('/image')
+def image():
+    locationDir = options['viewsheddir'] + returnID() + '/'
+    locationFile = options['locationpng']
+    if not os.path.isfile(locationDir+locationFile):
         return 'No image available'
     else:
-        return send_from_directory(itemDir, locationFile)
-
-
+        return send_from_directory(locationDir, locationFile)
 
 # user specific itmes
 @app.route('/viewsheds/<filename>')
 def serve_usrstatic(filename):
+    try:
+        assert(False)
+    except:
+        print('This function should not have been used.')
+        assert(False)
     itemDir = 'static' + '/viewsheds/' + str(returnID())
     return send_from_directory(itemDir, filename)
 
@@ -135,29 +113,24 @@ def serve_usrstatic(filename):
 def serve_static(path):
     return send_from_directory('js', path) #not sure why I have js directory, but it works
 
-@app.route('/')
-def index():
-    user = User()
-    login_user(user, remember=True)
-    return send_from_directory('static', 'index.html')
 
 # checks if task is done
 @app.route('/isTaskDone/<dateStamp>' , methods=['GET'])
 def isTaskDone(dateStamp):
-    doneFile = script_dir + '/static/viewsheds/{0}/done/{1}.done'.format(returnID() , dateStamp)
+    doneFile = script_dir + '/' + options['viewsheddir'] + returnID() + '/' + dateStamp + '.done'
+    print doneFile
     data = json.dumps({'done':os.path.exists(doneFile)})
     return data
 
-
-# Checks if necessary elevation files are present and downloads if not available.
-def srtmDownload(lat, lng):
-    return -1 , -1
-
+# Routes incoming requests to main index file.
+@app.route('/')
+def index():
+    return send_from_directory(options['staticdir'], 'index.html')
 
 if __name__ == "__main__":
     print app.config
     init()
-    app.run(debug=False)
+    app.run(debug= config.getboolean(this_file, "debug"))
 
     
     

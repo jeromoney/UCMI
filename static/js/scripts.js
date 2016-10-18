@@ -537,7 +537,7 @@ function radarOverlay(bounds, image, map) {
 
 
 function showImage(dateStamp){
-    var srcImage = 'image/' +viewNum + "?lastmod=" + Date.now();
+    var srcImage = 'image'+ "?lastmod=" + Date.now();
     if (typeof overlay != 'undefined'){
         overlay.refreshImage(srcImage);
     }
