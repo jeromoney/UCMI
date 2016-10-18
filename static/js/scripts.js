@@ -425,15 +425,6 @@ function returnLocation(event) {
         }
     }
 
-    
-    // If first location, reset user folder
-    if (viewNum == -1){ 
-        $.ajax({
-            url: "initUser",
-            method: "GET"
-            });
-    }
-    
 
     var dateStamp = Date.now();
     var marker = new google.maps.Marker({

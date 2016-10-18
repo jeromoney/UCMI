@@ -41,7 +41,6 @@ def init(folder = options['viewsheddir']):
         
         
 # sets up personal folder for user
-@app.route('/initUser', methods=['GET'])
 def initUser():
     userid = returnID()
     userfolder = script_dir + '/' + options['viewsheddir'] + userid
@@ -73,6 +72,9 @@ def elevationfilter():
 
 @app.route('/python', methods=['GET', 'POST'])
 def pythonScript():
+    #if this is the first request, set up user folder
+    if request.form['viewNum'] == '0':
+        initUser()
     formStr = json.dumps(['pointQuery'] + [request.form] + [returnID()])
     sendMsg(formStr)
     return '0'
