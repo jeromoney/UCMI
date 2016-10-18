@@ -4,8 +4,14 @@ execfile(activate_this_file, dict(__file__=activate_this_file))
 
 from viewsheds import grassCommonViewpoints
 from srtmsql import pointQuery , makeTransparent
+import pika , json , configparser
 
-import pika , json
+
+config = configparser.ConfigParser()
+config.read('../config.ini')
+options_ucmi = config._sections['ucmi.py']
+viewshedDir = '../' + options_ucmi['viewsheddir'] 
+
 
 # Connecting to RabbitMQ server
 connection = pika.BlockingConnection(pika.ConnectionParameters(
@@ -21,7 +27,7 @@ def callback(ch, method, properties, body):
     altitude = float(form['altitude'])
     greaterthan = (form['greaterthan'] == 'greaterthan')
     viewNum = int(form['viewNum'])
-    dateStamp = int(form['dateStamp'])
+    dateStamp = form['dateStamp']
     if fnction == 'grassCommonViewpoints':
         grassCommonViewpoints(viewNum , greaterthan , altitude , id , dateStamp)
         makeTransparent(id)
@@ -34,7 +40,7 @@ def callback(ch, method, properties, body):
     
     # Process is completed, create empty done file
     print(" [x] Done:  %r" % body)
-    f = file('../static/viewsheds/{0}/{1}.done'.format(id , dateStamp) , 'w')
+    f = file('/'.join([viewshedDir , id , dateStamp + '.done']), 'w')
     f.close()
 
 
