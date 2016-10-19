@@ -425,7 +425,45 @@ function returnLocation(event) {
         }
     }
 
-
+    // For the first click, check if moon and sun are visible.
+    // If so, display them with draggable line.
+    if (viewNum == -1){
+        var parameters = {
+            lat: latLng.lat(),
+            lon: latLng.lng(),
+        };
+        
+        
+        $.ajax({
+              type:    "POST",
+              url:     "/solarObjects",
+              dataType: "json",
+              data:    parameters,
+              success: function(data) {
+                    // post image here
+                    console.log(data);
+                    if (data["sunRisen"]){
+                        ;
+                        // display sun
+                        console.log("sun has risen");
+                    };
+                    if (data["moonRisen"]){
+                        ;
+                        // display moon
+                        console.log("moon has risen");
+                    };
+              },
+              // vvv---- This is the new bit
+              error:   function(jqXHR, textStatus, errorThrown) {
+                    alert("Error, status = " + textStatus + ", " +
+                          "error thrown: " + errorThrown
+                    );
+              }
+            });
+        
+        // need to return azimuth and boolean objects visible
+    };
+    
     var dateStamp = Date.now();
     var marker = new google.maps.Marker({
         position: latLng,
@@ -443,13 +481,13 @@ function returnLocation(event) {
         viewNum: viewNum,
         altitude : altitude,
         greaterthan : greaterthan
-    };
-
+    };        
+        
     
     var callback = function (){
        checkFlag(dateStamp );
         };
-    
+        
     // Sends lat lon to python script
     $.ajax({
         url: "python",
@@ -639,8 +677,6 @@ function showImage(dateStamp){
 
     }
 }
-
-
 
 function altitudeFilter(){
     if ($("#altFilter").text() == '<'){

@@ -23,12 +23,12 @@ import math , json , subprocess , shutil
 
 from flask import Flask , request, send_from_directory , session
 from pythonScripts.send import sendMsg 
+from pythonScripts.solarobjects import isObjVisible , brngLine
 
         
 app = Flask(__name__, static_url_path='')
 dir_path = os.path.dirname(os.path.realpath(__file__))
 os.chdir(dir_path)
-
 
 # deletes contents of static folder on startup
 def init(folder = options['viewsheddir']):
@@ -48,7 +48,7 @@ def initUser():
     userfolder = script_dir + '/' + options['viewsheddir'] + userid
     print userfolder
     if os.path.exists(userfolder):
-        init(script_dir + userfolder)
+        init(userfolder)
     demFolder = userfolder + '/' + options['demdir']
     print demFolder
     if not os.path.exists(demFolder):
@@ -103,6 +103,20 @@ def image():
         return 'No image available'
     else:
         return send_from_directory(locationDir, locationFile)
+
+# User is asking if sun and moon have risen and if so, where are they
+# in sky        
+@app.route('/solarObjects' , methods=['POST'])
+def solarObjects():
+    form = request.form
+    position = (float(form['lat']) , float(form['lon']))
+    dataDict = {}
+    dataDict['sunRisen'] , sunBrng = isObjVisible('Sun' , position)
+    dataDict['moonRisen'] , moonBrng = isObjVisible('Moon' , position)
+    dataDict['sunlineLat1'] , dataDict['sunlineLon1'] , dataDict['sunlineLat2'] , dataDict['sunlineLon2'] = brngLine(position , sunBrng)
+    dataDict['moonlineLat1'] , dataDict['moonlineLon1'] , dataDict['moonlineLat2'] , dataDict['moonlineLon2'] = brngLine(position , moonBrng) 
+    return json.dumps(dataDict)
+
 
 # user specific itmes
 @app.route('/viewsheds/<filename>')
